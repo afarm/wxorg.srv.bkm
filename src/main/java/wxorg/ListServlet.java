@@ -30,18 +30,32 @@ public class ListServlet extends HttpServlet {
             String sortField = query.get("sortField");
             if (sortField != null) {
                 QuerySorter.sortByFiled(allFilesEntries, sortField,
-                                       Objects.equals(query.get("sortorder"), "true"));
+                                      
+                                        Objects.equals(query.get("sortOrder"), "true"));
             }
         }
 
         String resStr = "";
         resStr += "<html>";
         resStr += "<pre>";
+        resStr += "<a href='?tag=Work>Work</a> / ";
+        resStr += "<a href='?tag=Jira>Jira</a>";
+        resStr += " Sort: ";
+        resStr += "<a href='?sortFiled=header'>Header</a>";
+        resStr += "<a href='?sortFiled=date'>Date</a> | ";
+        resStr += "<a href='?'>Tree</a> | ";
+        resStr += "<a href='?'>Trash</a>| ";
         for (Entry entry : allFilesEntries) {
-            resStr += String.format("- %s -", entry.uid);
-            resStr += String.format("- %s -", entry.dateStr);
+            resStr += String.format("%s ", entry.uid);
+            resStr += String.format("<a href='?del'>[x]</a> ");
+            resStr += String.format("%s ", entry.dateStr);
             resStr += String.format("- %s -", entry.type);
-            resStr += String.format("- %s -", entry.header);
+            resStr += String.format("<a href='?edit'>[edt]</a>");
+            if (entry.url != null) {
+                resStr += String.format("<a href='%s'>%s</a>", entry.url, entry.header);
+            } else {
+                resStr += String.format("%s", entry.header);
+            }
             resStr += "\n";
         }
         resp.getWriter().write(resStr);
