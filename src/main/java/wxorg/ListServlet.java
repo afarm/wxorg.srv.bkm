@@ -6,14 +6,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static wxorg.App.allFilesEntries;
 import static wxorg.App.allUrls;
 
-public class ListServlet extends HttpServlet {
+public class ListServlet extends ServletWrapper {
+
+    public ListServlet(String path) {
+        this.path = path;
+    }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -30,7 +33,6 @@ public class ListServlet extends HttpServlet {
             String sortField = query.get("sortField");
             if (sortField != null) {
                 QuerySorter.sortByFiled(allFilesEntries, sortField,
-                                      
                                         Objects.equals(query.get("sortOrder"), "true"));
             }
         }
@@ -58,8 +60,6 @@ public class ListServlet extends HttpServlet {
             }
             resStr += "\n";
         }
-        resp.getWriter().write(resStr);
-        resp.getWriter().flush();
-        resp.getWriter().close();
+        response.getWriter().write(resStr);
     }
 }

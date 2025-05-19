@@ -1,7 +1,9 @@
 package wxorg;
 
+import jakarta.servlet.Servlet;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.Service;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 
@@ -32,33 +34,36 @@ public class App {
 
     public static Set<String> allUrls = new HashSet<>();
 
+    private Context context;
+
+    private Tomcat tomcat;
 
     public static void main(String[] args) throws LifecycleException {
         new App().run();
     }
 
     public void run() throws LifecycleException {
-        Tomcat tomcat = new Tomcat();
+        tomcat = new Tomcat();
         tomcat.setBaseDir("temp");
-        Connector connector1 = tomcat.getConnector();
-        connector1.setPort(8080);
+        Connector connector = tomcat.getConnector();
+        connector.setPort(9000);
         String contextPath = "";
         String docBase = new File(".").getAbsolutePath();
 
-        Context context = tomcat.addContext(contextPath, docBase);
+        context = tomcat.addContext(contextPath, docBase);
 
-        Class servletClass = ListServlet.class;
-        String urlPattern = "/bookmarks";
-        tomcat.addServlet(contextPath, servletClass.getSimpleName(), servletClass.getName());
-        context.addServletMappingDecoded(urlPattern, servletClass.getSimpleName());
-
-        servletClass = AddServlet.class;
-        urlPattern = "/bookmarks";
-        tomcat.addServlet(contextPath, servletClass.getSimpleName(), servletClass.getName());
-        context.addServletMappingDecoded(urlPattern, servletClass.getSimpleName());
+        ListServlet listServlet = new ListServlet("/bookmarks");
+        addServlet(listServlet);
 
         tomcat.start();
-        tomcat.getService().addConnector(connector1);
+        tomcat.getService().addConnector(connector);
         tomcat.getServer().await();
+    }
+
+    void addServlet(ServletWrapper servletWrapper) {
+        String servletName = servletWrapper.getClass().getSimpleName();
+        tomcat.addServlet(context, servletName, servletWrapper);
+        context.addServletMappingDecoded(servletWrapper.getPath(), servletName);
+
     }
 }
