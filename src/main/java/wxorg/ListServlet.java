@@ -6,20 +6,37 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+
+import static wxorg.App.allFilesEntries;
+import static wxorg.App.allUrls;
 
 public class ListServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setStatus(HttpServletResponse.SC_OK);
-        resp.addHeader("Content-Type", "text/html; charset=utf-8");
-        RecursiveParser recursiveParser = new RecursiveParser();
-        List<Entry> entryList = recursiveParser.parse();
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader("Content-Type", "text/html; charset=utf-8");
+        allFilesEntries = App.recursiveParser.parse(App.dir);
+        for (Entry entry : allFilesEntries) {
+            allUrls.add(entry.url);
+        }
+
+        String queryString = request.getQueryString();
+        if (queryString != null) {
+            Map<String, String> query = QueryParser.parse(queryString);
+            String sortField = query.get("sortField");
+            if (sortField != null) {
+                QuerySorter
+            }
+        }
+
         String resStr = "";
         resStr += "<html>";
         resStr += "<pre>";
-        for (Entry entry : entryList) {
+        for (Entry entry : allFilesEntries) {
             resStr += String.format("- %s -", entry.uid);
             resStr += String.format("- %s -", entry.dateStr);
             resStr += String.format("- %s -", entry.type);

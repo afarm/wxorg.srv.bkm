@@ -11,11 +11,11 @@ import java.util.regex.*;
 public class Parser {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public static List<Entry> parseFile(Path path, List<String> entryTypes) throws IOException {
+    public static List<Entry> parseFile(Path path) throws IOException {
         List<Entry> entries = new ArrayList<>();
         List<String> lines = Files.readAllLines(path);
 
-        String entryPattern = "^(" + String.join("|", entryTypes) + "):\\s+(.*?)\\s+(\\w+)\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})";
+        String entryPattern = "^(" + String.join("|", App.entryTypes) + "):\\s+(.*?)\\s+(\\w+)\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})";
         Pattern startPattern = Pattern.compile(entryPattern);
 
         Entry current = null;

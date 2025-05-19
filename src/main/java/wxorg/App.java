@@ -6,8 +6,32 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class App {
+
+    public static List<String> entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
+
+    public static RecursiveParser recursiveParser = new RecursiveParser();
+
+    public static String dir = "/home/f/xorg/xorg";
+
+    public static List<Entry> allFilesEntries;
+
+    static {
+        try {
+            allFilesEntries = recursiveParser.parse(dir);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Set<String> allUrls = new HashSet<>();
+
 
     public static void main(String[] args) throws LifecycleException {
         new App().run();
@@ -23,10 +47,15 @@ public class App {
 
         Context context = tomcat.addContext(contextPath, docBase);
 
-        String servletName = "ListServlet";
+        Class servletClass = ListServlet.class;
         String urlPattern = "/bookmarks";
-        tomcat.addServlet(contextPath, servletName, new ListServlet());
-        context.addServletMappingDecoded(urlPattern, servletName);
+        tomcat.addServlet(contextPath, servletClass.getSimpleName(), servletClass.getName());
+        context.addServletMappingDecoded(urlPattern, servletClass.getSimpleName());
+
+        servletClass = AddServlet.class;
+        urlPattern = "/bookmarks";
+        tomcat.addServlet(contextPath, servletClass.getSimpleName(), servletClass.getName());
+        context.addServletMappingDecoded(urlPattern, servletClass.getSimpleName());
 
         tomcat.start();
         tomcat.getService().addConnector(connector1);
