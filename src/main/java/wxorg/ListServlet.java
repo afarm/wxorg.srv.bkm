@@ -29,7 +29,8 @@ public class ListServlet extends HttpServlet {
             Map<String, String> query = QueryParser.parse(queryString);
             String sortField = query.get("sortField");
             if (sortField != null) {
-                QuerySorter
+                QuerySorter.sortByFiled(allFilesEntries, sortField,
+                                       Objects.equals(query.get("sortorder"), "true"));
             }
         }
 
