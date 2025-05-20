@@ -3,6 +3,7 @@ package wxorg;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,7 +25,7 @@ public class ListServlet extends ServletWrapper {
         response.addHeader("Content-Type", "text/html; charset=utf-8");
 
         String queryString = request.getQueryString();
-        List<Entry> resEntries = entriesService.allFilesEntries();
+        List<Entry> resEntries = entriesService.initAllFilesEntries();
 
         // tag filter
 
@@ -38,10 +39,10 @@ public class ListServlet extends ServletWrapper {
             }
         }
 
-        String resStr = "";
-        resStr += "<html>";
-        resStr += "<pre>";
-
+        String resStr = """
+                <html>
+                <pre>
+                """;
         resStr += "Type: ";
         resStr += "<a href='?type=Note'>[-] Note</a> ";
         resStr += "<a href='?type=Bookmark'>[-] Bookmark</a> ";
@@ -69,13 +70,15 @@ public class ListServlet extends ServletWrapper {
             resStr += String.format("%s ", entry.uid);
             resStr += String.format("<a href='?act=del&uid=%s'>[x]</a> ", entry.uid);
             resStr += String.format("%s ", entry.dateStr);
-            resStr += String.format("%s ", entry.type);
-            resStr += String.format("<a href='?edit'>[edt]</a> ");
+            resStr += String.format("-8%s ", entry.type);
+            resStr += String.format("<a href='/edit?uid=%s'>[edt]</a> ", entry.uid);
+            String hdr = StringUtils.abbreviate(entry.header, 80);
             if (entry.url != null) {
-                resStr += String.format("<a href='%s'>%s</a>", entry.url, entry.header);
+                resStr += String.format("<a href='%s'>%s</a>", entry.url, hdr);
             } else {
-                resStr += String.format("%s", entry.header);
+                resStr += String.format("%s", hdr);
             }
+            resStr += String.format("%s", entry.tags);
             resStr += "\n";
         }
         response.getWriter().write(resStr);

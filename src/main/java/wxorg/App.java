@@ -10,6 +10,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * javascript:void window.open('http://localhost:9000/add?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)+'&sel='+encodeURIComponent(window.getSelection()))
+ * http://localhost:9000/list?sortField=date
+ */
 public class App {
 
     List<String> entryTypes; // ← можно добавлять свои
@@ -42,7 +46,7 @@ public class App {
         entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
         parserEntry = new ParserFile(entryTypes);
         recursiveParser = new RecursiveParser(dir, parserEntry);
-        entriesService  = new EntriesService(recursiveParser);
+        entriesService = new EntriesService(recursiveParser);
 
         tomcat = new Tomcat();
         tomcat.setBaseDir("temp");
@@ -53,8 +57,9 @@ public class App {
 
         context = tomcat.addContext(contextPath, docBase);
 
-        ListServlet listServlet = new ListServlet("/bookmarks", entriesService);
-        addServlet(listServlet);
+        addServlet(new ListServlet("/list", entriesService));
+        addServlet(new AddServlet("/add", entriesService));
+        addServlet(new EditServlet("/edit", entriesService));
 
         tomcat.start();
         tomcat.getService().addConnector(connector);
