@@ -74,10 +74,11 @@ public class ListServlet extends ServletWrapper {
             resStr += String.format("<a href='/edit?uid=%s'>[edt]</a> ", entry.uid);
             String hdr = StringUtils.abbreviate(entry.header, 80);
             if (entry.url != null) {
-                resStr += String.format("<a href='%s'>%s</a>", entry.url, hdr);
+                resStr += String.format("<a href='%s'>%-80s</a>", entry.url, hdr);
             } else {
                 resStr += String.format("%-80s", hdr);
             }
+            resStr += " ";
             resStr += String.format("%-80s", entry.tags);
             resStr += "\n";
         }
