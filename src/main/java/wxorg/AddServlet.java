@@ -1,7 +1,6 @@
 package wxorg;
 
 
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -15,7 +14,7 @@ public class AddServlet extends ServletWrapper {
 
     private EntriesService entriesService;
 
-    public AddServlet(String servletPath, EntriesService entriesService) {
+    public AddServlet(String servletPath, EntriesService entriesService, String dir) {
         this.entriesService = entriesService;
         this.servletPath = servletPath;
     }
@@ -36,10 +35,23 @@ public class AddServlet extends ServletWrapper {
 //        }
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyy-MM-dd HH:mm");
         String textarea = "";
-        textarea += String.format("Bookmark: %s %s %s\n", title, RandomString.random(), simpleDateFormat.format(new Date()));
+        String uid = RandomString.random();
+
+        String types = "";
+        types += "<a href='?type=Note'>Note</a>";
+        types += "<a href='?type=Bookmark'>Bookmark</a>";
+
+        String tags = "";
+        tags += "<a href='?tag=Work'>Note</a>";
+        tags += "<a href='?tag=Jira'>Bookmark</a>";
+
+        textarea += String.format("Bookmark: %s %s %s\n", title, uid, simpleDateFormat.format(new Date()));
         textarea += String.format("Url:      %s\n", url);
         textarea += String.format("Tags:     %s\n", "");
         String resStr = EditTemplate.get(textarea);
+        resStr = resStr.replace("{types}", types);
+        resStr = resStr.replace("{tags}", tags);
+        resStr = resStr.replace("{uid}", uid);
         response.getWriter().write(resStr);
     }
 

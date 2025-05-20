@@ -22,8 +22,6 @@ public class App {
 
     String dir;
 
-    List<Entry> allFilesEntries;
-
     Context context;
 
     Tomcat tomcat;
@@ -58,8 +56,8 @@ public class App {
         context = tomcat.addContext(contextPath, docBase);
 
         addServlet(new ListServlet("/list", entriesService));
-        addServlet(new AddServlet("/add", entriesService));
-        addServlet(new EditServlet("/edit", entriesService));
+        addServlet(new AddServlet("/add", entriesService, dir));
+        addServlet(new EditServlet("/edit", entriesService, dir));
 
         tomcat.start();
         tomcat.getService().addConnector(connector);

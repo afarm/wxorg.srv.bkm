@@ -70,15 +70,15 @@ public class ListServlet extends ServletWrapper {
             resStr += String.format("%s ", entry.uid);
             resStr += String.format("<a href='?act=del&uid=%s'>[x]</a> ", entry.uid);
             resStr += String.format("%s ", entry.dateStr);
-            resStr += String.format("-8%s ", entry.type);
+            resStr += String.format("%-8s ", entry.type);
             resStr += String.format("<a href='/edit?uid=%s'>[edt]</a> ", entry.uid);
             String hdr = StringUtils.abbreviate(entry.header, 80);
             if (entry.url != null) {
                 resStr += String.format("<a href='%s'>%s</a>", entry.url, hdr);
             } else {
-                resStr += String.format("%s", hdr);
+                resStr += String.format("%-80s", hdr);
             }
-            resStr += String.format("%s", entry.tags);
+            resStr += String.format("%-80s", entry.tags);
             resStr += "\n";
         }
         response.getWriter().write(resStr);

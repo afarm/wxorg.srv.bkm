@@ -21,12 +21,23 @@ public class EditTemplate extends ServletWrapper {
                   </style>
                   <body>
                     <pre>
-                    <form method='post'>
-                      <textarea>%s</textarea>
+                    <form method='post' action="/edit?uid={uid}">
+                    Types: <select name='types'>
+                      <option value="" selected></option>
+                      <option value="Note">Note</option>
+                      <option value="Bookmark">Bookmark</option>
+                    </select> Tags: <select name='tags'>
+                      <option value="" selected></option>
+                      <option value="Work">Work</option>
+                      <option value="Jira">Jira</option>
+                    </select>
+
+                      <textarea name='data'>%s</textarea>
                       <button type='submit'>Save</button> <button 
                         type='submit'>Save & Close</button> <button
                         type='submit'>Delete</button>
                     </form>
+                    {backRefs}
                   </body>
                 </html>    
                 """,
