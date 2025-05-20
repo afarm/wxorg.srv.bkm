@@ -8,14 +8,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.*;
 
-public class Parser {
+public class ParserFile {
+
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    public static List<Entry> parseFile(Path path) throws IOException {
+    private List<String> entryTypes;
+
+    public ParserFile(List<String> entryTypes) {
+        this.entryTypes = entryTypes;
+    }
+
+    public List<Entry> parseFile(Path path) throws IOException {
         List<Entry> entries = new ArrayList<>();
         List<String> lines = Files.readAllLines(path);
 
-        String entryPattern = "^(" + String.join("|", App.entryTypes) + "):\\s+(.*?)\\s+(\\w+)\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})";
+        String entryPattern = "^(" + String.join("|", entryTypes) + "):\\s+(.*?)\\s+(\\w+)\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})";
         Pattern startPattern = Pattern.compile(entryPattern);
 
         Entry current = null;

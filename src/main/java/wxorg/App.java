@@ -1,48 +1,49 @@
 package wxorg;
 
-import jakarta.servlet.Servlet;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
-import org.apache.catalina.Service;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class App {
 
-    public static List<String> entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
+    List<String> entryTypes; // ← можно добавлять свои
 
-    public static RecursiveParser recursiveParser = new RecursiveParser();
+    RecursiveParser recursiveParser;
 
-    public static String dir = "/home/f/xorg/xorg";
+    String dir;
 
-    public static List<Entry> allFilesEntries;
+    List<Entry> allFilesEntries;
 
-    static {
-        try {
-            allFilesEntries = recursiveParser.parse(dir);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    Context context;
 
-    public static Set<String> allUrls = new HashSet<>();
+    Tomcat tomcat;
 
-    private Context context;
+    EntriesService entriesService;
 
-    private Tomcat tomcat;
+    ParserFile parserEntry;
 
-    public static void main(String[] args) throws LifecycleException {
+    public static void main(String[] args) throws LifecycleException, IOException {
         new App().run();
     }
 
-    public void run() throws LifecycleException {
+    public void run() throws LifecycleException, IOException {
+
+        Properties properties = new Properties();
+        properties.load(new FileInputStream("xorg.cf"));
+
+        dir = properties.getProperty("dir").split(";")[0];
+        dir = expandPath(dir);
+        entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
+        parserEntry = new ParserFile(entryTypes);
+        recursiveParser = new RecursiveParser(dir, parserEntry);
+        entriesService  = new EntriesService(recursiveParser);
+
         tomcat = new Tomcat();
         tomcat.setBaseDir("temp");
         Connector connector = tomcat.getConnector();
@@ -52,7 +53,7 @@ public class App {
 
         context = tomcat.addContext(contextPath, docBase);
 
-        ListServlet listServlet = new ListServlet("/bookmarks");
+        ListServlet listServlet = new ListServlet("/bookmarks", entriesService);
         addServlet(listServlet);
 
         tomcat.start();
@@ -63,7 +64,15 @@ public class App {
     void addServlet(ServletWrapper servletWrapper) {
         String servletName = servletWrapper.getClass().getSimpleName();
         tomcat.addServlet(context, servletName, servletWrapper);
-        context.addServletMappingDecoded(servletWrapper.getPath(), servletName);
+        context.addServletMappingDecoded(servletWrapper.getServletPath(), servletName);
 
+    }
+
+    public static String expandPath(String path) {
+        if (path.startsWith("~" + File.separator) || path.equals("~")) {
+            String home = System.getProperty("user.home");
+            return home + path.substring(1);
+        }
+        return path;
     }
 }

@@ -9,7 +9,6 @@ import java.util.Map;
 public class QueryParser {
     public static Map<String, String> parse(String url) throws UnsupportedEncodingException {
         Map<String, String> query_pairs = new LinkedHashMap<>();
-
         String[] pairs = url.split("&");
         for (String pair : pairs) {
             int idx = pair.indexOf("=");

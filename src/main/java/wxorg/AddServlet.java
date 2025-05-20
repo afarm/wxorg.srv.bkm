@@ -18,13 +18,12 @@ public class AddServlet extends HttpServlet {
         String title = URLDecoder.decode(query.get("title"));
         String url = URLDecoder.decode(query.get("url"));
 
-        if(App.allUrls.contains(url)) {
-            System.out.println("Doublicate url = " + url);
-            return;
-        }
+//        if(App.allUrls.contains(url)) {
+//            System.out.println("Doublicate url = " + url);
+//            return;
+//        }
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.getWriter().write("test");
-        resp.getWriter().flush();
-        resp.getWriter().close();
+
     }
 }

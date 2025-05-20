@@ -4,14 +4,23 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class Entry {
+
     public String type;           // Теперь просто строка
+
     public String header;
+
     public String uid;
+
     public LocalDateTime date;
+
     public String dateStr;
+
     public List<String> tags;
+
     public String url;
+
     public List<String> refs;
+
     public String body;
 
     @Override

@@ -1,13 +1,12 @@
 package wxorg;
 
-import jakarta.servlet.Servlet;
 import jakarta.servlet.http.HttpServlet;
 
 public class ServletWrapper extends HttpServlet {
 
-    protected String path;
+    protected String servletPath;
 
-    public String getPath() {
-        return path;
+    public String getServletPath() {
+        return servletPath;
     }
 }
