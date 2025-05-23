@@ -26,10 +26,10 @@ public class EntriesService {
         allAllFilesEntries = recursiveParser.parse();
         for (Entry entry : allAllFilesEntries) {
             mapAllFilesEntries.put(entry.uid, entry);
-            if(idxUrls.get(entry.uid) == null) {
+            if(idxUrls.get(entry.url) == null) {
                 idxUrls.put(entry.url, new ArrayList<>());
             }
-            idxUrls.get(entry.uid).add(entry.uid);
+            idxUrls.get(entry.url).add(entry.uid);
             idxById.put(entry.uid, entry);
         }
         return new ArrayList<>(allAllFilesEntries);

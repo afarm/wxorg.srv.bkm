@@ -5,29 +5,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 
-public class EditServlet extends ServletWrapper {
+public class EditView {
 
-    private EntriesService entriesService;
-
+    private final EntriesService entriesService;
     private final String dir;
 
-    public EditServlet(String servletPath, EntriesService entriesService, String dir) {
+    public EditView(EntriesService entriesService, String dir) {
         this.entriesService = entriesService;
         this.dir = dir;
-        this.servletPath = servletPath;
     }
 
-    @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");
@@ -43,7 +38,6 @@ public class EditServlet extends ServletWrapper {
             writer.write(data);
             writer.close();
         }
-
 
         String fileStr = Files.readString(Paths.get(dir + "/" + uid + ".txt"));
         String textarea = "";

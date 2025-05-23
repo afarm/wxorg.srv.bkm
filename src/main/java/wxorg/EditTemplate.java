@@ -1,6 +1,6 @@
 package wxorg;
 
-public class EditTemplate extends ServletWrapper {
+public class EditTemplate  {
 
     public static String get(String textarea) {
         return String.format(

@@ -10,16 +10,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
-public class AddServlet extends ServletWrapper {
+public class AddView {
 
-    private EntriesService entriesService;
-
-    public AddServlet(String servletPath, EntriesService entriesService, String dir) {
-        this.entriesService = entriesService;
-        this.servletPath = servletPath;
-    }
-
-    @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");

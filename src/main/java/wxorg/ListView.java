@@ -5,21 +5,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-public class ListServlet extends ServletWrapper {
+public class ListView  {
 
     private final EntriesService entriesService;
 
-    public ListServlet(String servletPath, EntriesService entriesService) {
+    public ListView(EntriesService entriesService) throws IOException {
+
         this.entriesService = entriesService;
-        this.servletPath = servletPath;
     }
 
-    @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");
@@ -83,5 +81,14 @@ public class ListServlet extends ServletWrapper {
             resStr += "\n";
         }
         response.getWriter().write(resStr);
+    }
+
+
+    public static String expandPath(String path) {
+        if (path.startsWith("~" + File.separator) || path.equals("~")) {
+            String home = System.getProperty("user.home");
+            return home + path.substring(1);
+        }
+        return path;
     }
 }
