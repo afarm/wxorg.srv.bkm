@@ -44,6 +44,7 @@ public class EditServlet extends ServletWrapper {
             writer.close();
         }
 
+
         String fileStr = Files.readString(Paths.get(dir + "/" + uid + ".txt"));
         String textarea = "";
         String resStr = "--";
