@@ -1,8 +1,12 @@
-package wxorg;
+package wxorg.view;
 
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import wxorg.template.EditTemplate;
+import wxorg.DataSourceService;
+import wxorg.Entry;
+import wxorg.util.QueryParser;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -15,15 +19,16 @@ import java.util.Map;
 
 public class EditView {
 
-    private final EntriesService entriesService;
+    private final DataSourceService entriesService;
+
     private final String dir;
 
-    public EditView(EntriesService entriesService, String dir) {
-        this.entriesService = entriesService;
+    public EditView(DataSourceService dataSourceService, String dir) {
+        this.entriesService = dataSourceService;
         this.dir = dir;
     }
 
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");
 

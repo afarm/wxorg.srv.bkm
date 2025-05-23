@@ -1,8 +1,11 @@
-package wxorg;
+package wxorg.view;
 
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import wxorg.template.EditTemplate;
+import wxorg.util.QueryParser;
+import wxorg.util.RandomString;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -12,7 +15,7 @@ import java.util.Map;
 
 public class AddView {
 
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");
 

@@ -1,4 +1,4 @@
-package wxorg;
+package wxorg.template;
 
 public class EditTemplate  {
 
@@ -21,7 +21,7 @@ public class EditTemplate  {
                   </style>
                   <body>
                     <pre>
-                    <form method='post' action="/edit?uid={uid}">
+                    <form method='post' action="/?act=edit&uid={uid}">
                     Types: <select name='types'>
                       <option value="" selected></option>
                       <option value="Note">Note</option>

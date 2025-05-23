@@ -1,4 +1,4 @@
-package wxorg;
+package wxorg.util;
 
 import java.lang.reflect.Field;
 import java.util.Comparator;

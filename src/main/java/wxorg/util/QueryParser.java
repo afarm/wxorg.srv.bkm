@@ -1,4 +1,4 @@
-package wxorg;
+package wxorg.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URL;

@@ -4,7 +4,9 @@ package wxorg;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang3.StringUtils;
+import wxorg.view.AddView;
+import wxorg.view.EditView;
+import wxorg.view.ListView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,7 +15,7 @@ import java.util.*;
 
 public class MainServlet extends HttpServlet {
 
-    private final EntriesService entriesService;
+    private final DataSourceService dataSourceService;
 
     List<String> entryTypes; // ← можно добавлять свои
 
@@ -39,14 +41,16 @@ public class MainServlet extends HttpServlet {
         entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
         parserEntry = new ParserFile(entryTypes);
         recursiveParser = new RecursiveParser(dir, parserEntry);
-        entriesService = new EntriesService(recursiveParser);
-        listView = new ListView(entriesService);
+        dataSourceService = new DataSourceService(recursiveParser);
+        listView = new ListView(dataSourceService);
         addView = new AddView();
-        editView = new EditView(entriesService, dir);
+        editView = new EditView(dataSourceService, dir);
     }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        request.setCharacterEncoding("UTF-8");
 
         String act = request.getParameter("act");
         // todo switch ()

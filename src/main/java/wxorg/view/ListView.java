@@ -1,9 +1,13 @@
-package wxorg;
+package wxorg.view;
 
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import wxorg.DataSourceService;
+import wxorg.Entry;
+import wxorg.util.EntrySorter;
+import wxorg.util.QueryParser;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,19 +15,19 @@ import java.util.*;
 
 public class ListView  {
 
-    private final EntriesService entriesService;
+    private final DataSourceService dataSourceService;
 
-    public ListView(EntriesService entriesService) throws IOException {
+    public ListView(DataSourceService entriesService) throws IOException {
 
-        this.entriesService = entriesService;
+        this.dataSourceService = entriesService;
     }
 
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");
 
         String queryString = request.getQueryString();
-        List<Entry> resEntries = entriesService.initAllFilesEntries();
+        List<Entry> resEntries = dataSourceService.initAllFilesEntries();
 
         // tag filter
 
@@ -69,7 +73,7 @@ public class ListView  {
             resStr += String.format("<a href='?act=del&uid=%s'>[x]</a> ", entry.uid);
             resStr += String.format("%s ", entry.dateStr);
             resStr += String.format("%-8s ", entry.type);
-            resStr += String.format("<a href='/edit?uid=%s'>[edt]</a> ", entry.uid);
+            resStr += String.format("<a href='/?act=edit&uid=%s'>[edt]</a> ", entry.uid);
             String hdr = StringUtils.abbreviate(entry.header, 80);
             if (entry.url != null) {
                 resStr += String.format("<a href='%s'>%-80s</a>", entry.url, hdr);

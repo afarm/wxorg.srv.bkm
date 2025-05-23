@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-public class EntriesService {
+public class DataSourceService {
 
     List<Entry> allAllFilesEntries = new ArrayList<>();
 
@@ -17,7 +17,7 @@ public class EntriesService {
 
     RecursiveParser recursiveParser;
 
-    public EntriesService(RecursiveParser recursiveParser) throws IOException {
+    public DataSourceService(RecursiveParser recursiveParser) throws IOException {
         this.recursiveParser = recursiveParser;
         initAllFilesEntries();
     }
