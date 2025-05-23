@@ -6,9 +6,12 @@ import java.util.*;
 
 public class EntriesService {
 
-    List<Entry> allFilesEntries = new ArrayList<>();
+    List<Entry> allAllFilesEntries = new ArrayList<>();
 
-    Set<String> allUrls = new HashSet<>();
+    Map<String, Entry> mapAllFilesEntries = new HashMap<>();
+
+    // url => uid-s
+    Map<String, List<String>> idxUrls = new HashMap<>();
 
     Map<String, Entry> idxById = new HashMap<>();
 
@@ -20,16 +23,20 @@ public class EntriesService {
     }
 
     public List<Entry> initAllFilesEntries() throws IOException {
-        allFilesEntries = recursiveParser.parse();
-        for (Entry entry : allFilesEntries) {
-            allUrls.add(entry.url);
+        allAllFilesEntries = recursiveParser.parse();
+        for (Entry entry : allAllFilesEntries) {
+            mapAllFilesEntries.put(entry.uid, entry);
+            if(idxUrls.get(entry.uid) == null) {
+                idxUrls.put(entry.url, new ArrayList<>());
+            }
+            idxUrls.get(entry.uid).add(entry.uid);
             idxById.put(entry.uid, entry);
         }
-        return new ArrayList<>(allFilesEntries);
+        return new ArrayList<>(allAllFilesEntries);
     }
 
-    public Set<String> getAllUrls() {
-        return allUrls;
+    public Map<String, List<String>> getIdxUrls() {
+        return idxUrls;
     }
 
     public Entry getById(String uid) {

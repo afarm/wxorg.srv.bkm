@@ -68,7 +68,6 @@ public class App {
         String servletName = servletWrapper.getClass().getSimpleName();
         tomcat.addServlet(context, servletName, servletWrapper);
         context.addServletMappingDecoded(servletWrapper.getServletPath(), servletName);
-
     }
 
     public static String expandPath(String path) {
