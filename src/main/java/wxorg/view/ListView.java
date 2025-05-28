@@ -44,8 +44,8 @@ public class ListView {
                   <title>Ссылки</title>
                   <style>
                    a { text-decoration: none; }
-                   div:hover { background: #f0f0f0; }
                    a:hover { text-decoration: underline; }
+                   div:hover { background: #f0f0f0; }
                   </style>
                  </head>
                  <body>
