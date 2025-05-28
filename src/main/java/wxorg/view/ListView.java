@@ -23,21 +23,16 @@ public class ListView  {
     }
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.addHeader("Content-Type", "text/html; charset=utf-8");
-
-        String queryString = request.getQueryString();
         List<Entry> resEntries = dataSourceService.initAllFilesEntries();
 
         // tag filter
-
-        if (queryString != null) {
-            Map<String, String> query = QueryParser.parse(queryString);
-            String sortField = query.get("sortField");
+        String sortField = request.getParameter("sortField");
+        String sortOrder = request.getParameter("sortOrder");
+        if (sortField != null) {
             if (sortField != null) {
                 // sort
                 EntrySorter.sortByField(resEntries, sortField,
-                        Objects.equals(query.get("sortOrder"), "true"));
+                        Objects.equals(sortOrder, "true"));
             }
         }
 

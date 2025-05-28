@@ -29,12 +29,7 @@ public class EditView {
     }
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.addHeader("Content-Type", "text/html; charset=utf-8");
-
-        Map<String, String> query = QueryParser.parse(request.getQueryString());
-
-        String uid = URLDecoder.decode(query.get("uid"));
+        String uid = request.getParameter("uid");
         Entry entry = entriesService.getById(uid);
         request.setCharacterEncoding("UTF-8");
         String data = request.getParameter("data");

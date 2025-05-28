@@ -4,6 +4,8 @@ package wxorg;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import wxorg.util.EntrySorter;
+import wxorg.util.QueryParser;
 import wxorg.view.AddView;
 import wxorg.view.EditView;
 import wxorg.view.ListView;
@@ -49,10 +51,12 @@ public class MainServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
         request.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader("Content-Type", "text/html; charset=utf-8");
 
         String act = request.getParameter("act");
+
         // todo switch ()
         if ("list".equals(act)) {
             listView.service(request, response);
@@ -60,6 +64,8 @@ public class MainServlet extends HttpServlet {
             addView.service(request, response);
         } else if ("edit".equals(act)) {
             editView.service(request, response);
+        } else if ("del".equals(act)) {
+            dataSourceService.delete(request.getParameter("uid"));
         }
     }
 

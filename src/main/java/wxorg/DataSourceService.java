@@ -1,5 +1,6 @@
 package wxorg;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -41,5 +42,13 @@ public class DataSourceService {
 
     public Entry getById(String uid) {
         return idxById.get(uid);
+    }
+
+    public void delete(String uid) {
+//        mapAllFilesEntries.remove();
+//        allAllFilesEntries.remove();
+//        idxUrls;
+//        idxById;
+//        new File().renameTo(".deleted/");
     }
 }

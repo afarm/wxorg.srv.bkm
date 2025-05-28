@@ -16,13 +16,8 @@ import java.util.Map;
 public class AddView {
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.addHeader("Content-Type", "text/html; charset=utf-8");
-
-        Map<String, String> query = QueryParser.parse(request.getQueryString());
-
-        String title = URLDecoder.decode(query.get("title"));
-        String url = URLDecoder.decode(query.get("url"));
+        String title = request.getParameter("title");
+        String url = request.getParameter("url");
 
 //        if(App.allUrls.contains(url)) {
 //            System.out.println("Doublicate url = " + url);
