@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class ListView  {
+public class ListView {
 
     private final DataSourceService dataSourceService;
 
@@ -37,9 +37,20 @@ public class ListView  {
         }
 
         String resStr = """
+                <!DOCTYPE html>
                 <html>
-                <pre>
-                """;
+                 <head>
+                  <meta charset="utf-8">
+                  <title>Ссылки</title>
+                  <style>
+                   a { text-decoration: none; }
+                   div:hover { background: #f0f0f0; }
+                   a:hover { text-decoration: underline; }
+                  </style>
+                 </head>
+                 <body>
+                 <pre>
+                  """;
         resStr += "Type: ";
         resStr += "<a href='?type=Note'>[-] Note</a> ";
         resStr += "<a href='?type=Bookmark'>[-] Bookmark</a> ";
@@ -64,6 +75,7 @@ public class ListView  {
         resStr += "\n\n";
 
         for (Entry entry : resEntries) {
+            resStr += String.format("<div> ");
             resStr += String.format("%s ", entry.uid);
             resStr += String.format("<a href='?act=del&uid=%s'>[x]</a> ", entry.uid);
             resStr += String.format("%s ", entry.dateStr);
@@ -77,7 +89,8 @@ public class ListView  {
             }
             resStr += " ";
             resStr += String.format("%-80s", entry.tags);
-            resStr += "\n";
+            resStr += String.format("</div>");
+            resStr += "";
         }
         response.getWriter().write(resStr);
     }
