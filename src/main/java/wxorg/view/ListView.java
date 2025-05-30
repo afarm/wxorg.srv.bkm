@@ -12,6 +12,7 @@ import wxorg.util.QueryParser;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class ListView {
 
@@ -89,6 +90,9 @@ public class ListView {
             }
             resStr += " ";
             resStr += String.format("%-80s", entry.tags);
+            resStr += String.format("</div>");
+            resStr += String.format("<div style='color: #555' >");
+            resStr += String.format("%s", entry.body.indent(8).replaceAll("(?m)^[ \t]*\r?\n", ""));
             resStr += String.format("</div>");
             resStr += "";
         }
