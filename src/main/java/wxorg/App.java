@@ -13,6 +13,9 @@ import java.io.IOException;
  * http://localhost:9000/list?sortField=date
  * todo:
  * text in list view
+ * all types .*?
+ * idxTypes
+ *
  *
  */
 public class App {

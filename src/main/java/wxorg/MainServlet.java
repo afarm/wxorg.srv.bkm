@@ -10,9 +10,8 @@ import wxorg.view.AddView;
 import wxorg.view.EditView;
 import wxorg.view.ListView;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MainServlet extends HttpServlet {
@@ -43,7 +42,7 @@ public class MainServlet extends HttpServlet {
         entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
         parserEntry = new ParserFile(entryTypes);
         recursiveParser = new RecursiveParser(dir, parserEntry);
-        dataSourceService = new DataSourceService(recursiveParser);
+        dataSourceService = new DataSourceService(recursiveParser, dir);
         listView = new ListView(dataSourceService);
         addView = new AddView();
         editView = new EditView(dataSourceService, dir);
@@ -54,11 +53,20 @@ public class MainServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");
+        request.setCharacterEncoding("UTF-8");
 
         String act = request.getParameter("act");
+        String uid = request.getParameter("uid");
 
         // todo switch ()
-        if ("list".equals(act)) {
+        String data = request.getParameter("data");
+        if (data != null) {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(dir + "/" + uid + ".txt", StandardCharsets.UTF_8));
+            writer.write(data);
+            writer.close();
+            response.sendRedirect("?act=list&sortField=date&sortOrder=desc");
+            return;
+        } else if ("list".equals(act)) {
             listView.service(request, response);
         } else if ("add".equals(act)) {
             addView.service(request, response);
@@ -66,6 +74,8 @@ public class MainServlet extends HttpServlet {
             editView.service(request, response);
         } else if ("del".equals(act)) {
             dataSourceService.delete(request.getParameter("uid"));
+            response.sendRedirect("?act=list&sortField=date&sortOrder=desc");
+            return;
         }
     }
 

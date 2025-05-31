@@ -1,5 +1,6 @@
 package wxorg;
 
+import javax.xml.transform.Source;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,14 +23,18 @@ public class ParserFile {
         List<Entry> entries = new ArrayList<>();
         List<String> lines = Files.readAllLines(path);
 
-        String entryPattern = "^(" + String.join("|", entryTypes) + "):\\s+(.*?)\\s+(\\w+)\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})";
-        Pattern startPattern = Pattern.compile(entryPattern);
+        String entryPatternStr = "^(" + String.join("|", entryTypes) + "):\\s+(.*?)\\s+(\\w+)\\s+(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2})";
+        Pattern entryPattern = Pattern.compile(entryPatternStr);
+        String fldPatternStr = "^(.+?):\\s+(.*?)";
+        Pattern fldPattern = Pattern.compile(fldPatternStr);
 
         Entry current = null;
         StringBuilder bodyBuilder = new StringBuilder();
 
+        boolean inFlds = false;
+
         for (String line : lines) {
-            Matcher matcher = startPattern.matcher(line);
+            Matcher matcher = entryPattern.matcher(line);
             if (matcher.find()) {
                 if (current != null) {
                     current.body = bodyBuilder.toString().trim();
@@ -37,6 +42,7 @@ public class ParserFile {
                 }
 
                 current = new Entry();
+                current._file = path.toString();
                 current.type = matcher.group(1);
                 current.header = matcher.group(2);
                 current.uid = matcher.group(3);
@@ -45,17 +51,34 @@ public class ParserFile {
                 current.tags = new ArrayList<>();
                 current.refs = new ArrayList<>();
                 bodyBuilder = new StringBuilder();
+                inFlds = true;
                 continue;
             }
 
-            if (current == null) continue;
+            if (current == null) {
+                continue;
+            }
 
-            if (line.startsWith("Tags:")) {
-                current.tags = Arrays.asList(line.replace("Tags:", "").trim().split("\\s+"));
-            } else if (line.startsWith("Url:")) {
-                current.url = line.replace("Url:", "").trim();
-            } else if (line.startsWith("Ref:")) {
-                current.refs.add(line.replace("Ref:", "").trim());
+            Matcher matcherFlds = fldPattern.matcher(line);
+
+            if (line.matches("^\s*^")) {
+                inFlds = false;
+            }
+
+            if (inFlds) {
+                if (line.startsWith("Tags:")) {
+                    current.tags = Arrays.asList(line.replace("Tags:", "").trim().split("\\s+"));
+                } else if (line.startsWith("Url:")) {
+                    current.url = line.replace("Url:", "").trim();
+                } else if (line.startsWith("Ref:")) {
+                    current.refs.add(line.replace("Ref:", "").trim());
+                } else if (matcherFlds.find()) {
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put(matcherFlds.group(1), matcherFlds.group(2));
+                    current.flds.add(map);
+                } else {
+                    inFlds = false;
+                }
             } else {
                 bodyBuilder.append(line).append("\n");
             }
@@ -64,6 +87,8 @@ public class ParserFile {
         if (current != null) {
             current.body = bodyBuilder.toString().trim();
             entries.add(current);
+        } else {
+            System.out.println("Skipped = " + path);
         }
 
         return entries;

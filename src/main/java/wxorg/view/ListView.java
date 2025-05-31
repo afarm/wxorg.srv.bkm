@@ -7,24 +7,23 @@ import org.apache.commons.lang3.StringUtils;
 import wxorg.DataSourceService;
 import wxorg.Entry;
 import wxorg.util.EntrySorter;
-import wxorg.util.QueryParser;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class ListView {
 
     private final DataSourceService dataSourceService;
 
-    public ListView(DataSourceService entriesService) throws IOException {
-
+    public ListView(DataSourceService entriesService) {
         this.dataSourceService = entriesService;
     }
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        List<Entry> resEntries = dataSourceService.initAllFilesEntries();
+        List<Entry> resEntries = dataSourceService.buildAllEntries();
+
+        String showBody = request.getParameter("showBody");
 
         // tag filter
         String sortField = request.getParameter("sortField");
@@ -33,7 +32,7 @@ public class ListView {
             if (sortField != null) {
                 // sort
                 EntrySorter.sortByField(resEntries, sortField,
-                        Objects.equals(sortOrder, "true"));
+                        !Objects.equals(sortOrder, "desc"));
             }
         }
 
@@ -64,8 +63,8 @@ public class ListView {
         resStr += ".. \n";
 
         resStr += "Sort: ";
-        resStr += "<a href='?sortField=header'>[-] Header</a> ";
-        resStr += "<a href='?sortField=date'>[^] Date</a> ";
+        resStr += "<a href='?act=list&sortField=header&sortOrder=desc'>[-] Header</a> ";
+        resStr += "<a href='?act=list&sortField=date&sortOrder=desc'>[^] Date</a> ";
         resStr += "| ";
 
         resStr += "<a href='?'>[x] Tree</a> ";
@@ -77,23 +76,24 @@ public class ListView {
 
         for (Entry entry : resEntries) {
             resStr += String.format("<div> ");
-            resStr += String.format("%s ", entry.uid);
-            resStr += String.format("<a href='?act=del&uid=%s'>[x]</a> ", entry.uid);
-            resStr += String.format("%s ", entry.dateStr);
             resStr += String.format("%-8s ", entry.type);
-            resStr += String.format("<a href='/?act=edit&uid=%s'>[edt]</a> ", entry.uid);
             String hdr = StringUtils.abbreviate(entry.header, 80);
             if (entry.url != null) {
-                resStr += String.format("<a href='%s'>%-80s</a>", entry.url, hdr);
+                resStr += String.format("<a href='%s'><b>%-80s</b></a>", entry.url, hdr);
             } else {
                 resStr += String.format("%-80s", hdr);
             }
-            resStr += " ";
+            resStr += String.format("<a href='/?act=edit&uid=%s'>[edt]</a> ", entry.uid);
+            resStr += String.format("%s ", entry.uid);
+            resStr += String.format("%s ", entry.dateStr);
+            resStr += String.format("<a href='?act=del&uid=%s'>[x]</a> ", entry.uid);
             resStr += String.format("%-80s", entry.tags);
             resStr += String.format("</div>");
-            resStr += String.format("<div style='color: #555' >");
-            resStr += String.format("%s", entry.body.indent(8).replaceAll("(?m)^[ \t]*\r?\n", ""));
-            resStr += String.format("</div>");
+            if (showBody != null) {
+                resStr += String.format("<div style='color: #555' >");
+                resStr += String.format("%s", entry.body.indent(10).replaceAll("(?m)^[ \t]*\r?\n", ""));
+                resStr += String.format("</div>");
+            }
             resStr += "";
         }
         response.getWriter().write(resStr);

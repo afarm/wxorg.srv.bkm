@@ -31,13 +31,6 @@ public class EditView {
     public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String uid = request.getParameter("uid");
         Entry entry = entriesService.getById(uid);
-        request.setCharacterEncoding("UTF-8");
-        String data = request.getParameter("data");
-        if (data != null) {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(dir + "/" + uid + ".txt", StandardCharsets.UTF_8));
-            writer.write(data);
-            writer.close();
-        }
 
         String fileStr = Files.readString(Paths.get(dir + "/" + uid + ".txt"));
         String textarea = "";

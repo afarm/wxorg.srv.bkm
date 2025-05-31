@@ -1,11 +1,16 @@
 package wxorg;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Entry {
 
-    public String type;           // Теперь просто строка
+    public String _file;
+
+    public String type;
 
     public String header;
 
@@ -22,6 +27,8 @@ public class Entry {
     public List<String> refs;
 
     public String body;
+
+    public List<Map<String, String>> flds = new ArrayList<>();
 
     @Override
     public String toString() {

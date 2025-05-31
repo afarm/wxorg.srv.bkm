@@ -33,8 +33,7 @@ public class EditTemplate  {
                     </select>
 
                       <textarea name='data'>%s</textarea>
-                      <button type='submit'>Save</button> <button 
-                        type='submit'>Save & Close</button> <button
+                      <button type='submit'>Save</button> <button
                         type='submit'>Delete</button>
                     </form>
                     {backRefs}
