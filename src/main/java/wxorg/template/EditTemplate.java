@@ -2,20 +2,20 @@ package wxorg.template;
 
 public class EditTemplate  {
 
-    public static String get(String textarea) {
-        return String.format(
+    public static String get() {
+        return
             """
                 <html>
                   <meta charset="UTF-8"/>
                   <style>
                     html * {
-                      font-size: 11px !important;
+                      font-size: 12px !important;
                       font-family: monospace !important;
                     }
                     textarea {
                       white-space: pre;
                       overflow-wrap: normal;
-                      width: 90%%;
+                      width: 90%;
                       height: 250px;
                     }
                   </style>
@@ -32,14 +32,13 @@ public class EditTemplate  {
                       <option value="Jira">Jira</option>
                     </select>
 
-                      <textarea name='data'>%s</textarea>
+                      <textarea name='data'>{textarea}</textarea>
                       <button type='submit'>Save</button> <button
                         type='submit'>Delete</button>
                     </form>
                     {backRefs}
                   </body>
                 </html>    
-                """,
-            textarea);
+                """;
     }
 }

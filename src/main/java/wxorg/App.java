@@ -1,12 +1,13 @@
 package wxorg;
 
+import java.io.File;
+import java.io.IOException;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.Context;
 
-import java.io.File;
-import java.io.IOException;
 
 /**
  * javascript:void window.open('http://localhost:9000/add?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title)+'&sel='+encodeURIComponent(window.getSelection()))

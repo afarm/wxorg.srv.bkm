@@ -37,7 +37,7 @@ public class EditView {
         String resStr = "--";
         if (entry != null) {
             textarea += fileStr;
-            resStr = EditTemplate.get(textarea);
+            resStr = EditTemplate.get();
         }
         String backRefs = "Backrefs:\n";
 
@@ -45,6 +45,7 @@ public class EditView {
         backRefs += String.format("      XXX header\n");
         backRefs += String.format("      XXX header\n");
         backRefs += String.format("      XXX header\n");
+        resStr = resStr.replace("{textarea}", textarea);
         resStr = resStr.replace("{backRefs}", backRefs);
         resStr = resStr.replace("{uid}", uid);
 

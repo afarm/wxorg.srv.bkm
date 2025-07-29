@@ -38,10 +38,12 @@ public class AddView {
         textarea += String.format("Bookmark: %s %s %s\n", title, uid, simpleDateFormat.format(new Date()));
         textarea += String.format("Url:      %s\n", url);
         textarea += String.format("Tags:     %s\n", "");
-        String resStr = EditTemplate.get(textarea);
+        String resStr = EditTemplate.get();
+        resStr = resStr.replace("{textarea}", textarea);
         resStr = resStr.replace("{types}", types);
         resStr = resStr.replace("{tags}", tags);
         resStr = resStr.replace("{uid}", uid);
+        resStr = resStr.replace("{backRefs}", "backRefs");
         response.getWriter().write(resStr);
     }
 

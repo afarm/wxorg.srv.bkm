@@ -3,6 +3,7 @@ package wxorg.view;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import wxorg.DataSourceService;
 import wxorg.Entry;
@@ -21,11 +22,27 @@ public class ListView {
     }
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        List<Entry> resEntries = dataSourceService.buildAllEntries();
+        // tag filter
+        List<Entry> resEntries = new ArrayList<>();
+        String[] tags = request.getParameterValues("tag");
+        if (tags != null) {
+            HashSet<Entry> resEntriesSet = new HashSet<>();
+            for (String tag : tags) {
+                List<Entry> entries = dataSourceService.idxTags().get(tag);
+                //if (resEntriesSet.size() > 0) {
+                    for (Entry entry : entries) {
+                        if (!resEntriesSet.contains(entry)) {
+                            resEntriesSet.add(entry);
+                        }
+                    }
+                //}
+            }
+            resEntries.addAll(resEntriesSet);
+        } else {
+            resEntries = dataSourceService.buildAllEntries();
+        }
 
         String showBody = request.getParameter("showBody");
-
-        // tag filter
         String sortField = request.getParameter("sortField");
         String sortOrder = request.getParameter("sortOrder");
         if (sortField != null) {
@@ -57,10 +74,11 @@ public class ListView {
         resStr += ".. \n";
 
         resStr += "Tag : ";
-        resStr += "<a href='?tag=Work'>[-] Work</a> ";
-        resStr += "<a href='?tag=Jira'>[-] Jira</a> ";
-        resStr += "<a href='?tag=Java'>[-] Java</a> ";
-        resStr += ".. \n";
+        String url = "?act=list&sortField=date&sortOrder=desc";
+        for (String tag : dataSourceService.idxTags().keySet()) {
+            resStr += "<a href='" + url + "&tag=" + tag + "'>" + (ObjectUtils.isEmpty(tag) ? "--" : tag) + "</a> ";
+        }
+        resStr += "\n";
 
         resStr += "Sort: ";
         resStr += "<a href='?act=list&sortField=header&sortOrder=desc'>[-] Header</a> ";

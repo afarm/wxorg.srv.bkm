@@ -6,12 +6,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 
 public class DataSourceService {
 
-    List<Entry> allAllFilesEntries = new ArrayList<>();
+    List<Entry> allFilesEntries = new ArrayList<>();
 
     List<Entry> deletedEntries = new ArrayList<>();
 
@@ -20,12 +19,15 @@ public class DataSourceService {
     // url => uid-s
     Map<String, List<Entry>> idxUrls = new HashMap<>();
 
+    Map<String, List<Entry>> idxTags = new HashMap<>();
+
     Map<String, List<Entry>> idxFiles = new HashMap<>();
 
     Map<String, Entry> idxById = new HashMap<>();
 
     RecursiveParser recursiveParser;
-    private final String dir;
+
+    String dir;
 
     public DataSourceService(RecursiveParser recursiveParser, String dir) throws IOException {
         this.recursiveParser = recursiveParser;
@@ -34,8 +36,8 @@ public class DataSourceService {
     }
 
     public List<Entry> buildAllEntries() throws IOException {
-        allAllFilesEntries = recursiveParser.parse();
-        for (Entry entry : allAllFilesEntries) {
+        allFilesEntries = recursiveParser.parse();
+        for (Entry entry : allFilesEntries) {
             String file = entry._file;
             Path path = Path.of(file);
             if (Objects.equals(path.getParent().getFileName().toString(), ".deleted")) {
@@ -49,16 +51,27 @@ public class DataSourceService {
             idxFiles.computeIfAbsent(file, k -> new ArrayList<>());
             idxFiles.get(file).add(entry);
             idxById.put(entry.uid, entry);
+
+            if (entry.tags != null) {
+                for (String tag : entry.tags) {
+                    idxTags.putIfAbsent(tag, new ArrayList<>());
+                    idxTags.get(tag).add(entry);
+                }
+            }
         }
         for (Entry deletedEntry : deletedEntries) {
             System.out.printf(".deleted " + deletedEntry._file);
-            allAllFilesEntries.remove(deletedEntry);
+            allFilesEntries.remove(deletedEntry);
         }
-        return new ArrayList<>(allAllFilesEntries);
+        return new ArrayList<>(allFilesEntries);
     }
 
     public Map<String, List<Entry>> getIdxUrls() {
         return idxUrls;
+    }
+
+    public Map<String, List<Entry>> idxTags() {
+        return idxTags;
     }
 
     public Entry getById(String uid) {
@@ -68,12 +81,12 @@ public class DataSourceService {
     public void delete(String uid) {
         Entry entry = mapAllFilesEntries.get(uid);
         mapAllFilesEntries.remove(uid);
-        allAllFilesEntries.remove(entry);
+        allFilesEntries.remove(entry);
         // idxFiles.get(entry)
         // idxUrls;
         idxById.remove(uid);
         try {
-            if(entry != null) {
+            if (entry != null) {
                 File file = new File(entry._file);
                 FileUtils.copyFileToDirectory(file, new File(dir + "/.deleted/"));
                 FileUtils.forceDelete(file);
