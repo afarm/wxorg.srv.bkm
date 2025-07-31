@@ -1,0 +1,30 @@
+<html>
+  <meta charset="UTF-8"/>
+  <style>
+    html * {
+      font-size: 12px !important;
+      font-family: monospace !important;
+    }
+    textarea {
+      white-space: pre;
+      overflow-wrap: normal;
+      width: 90%;
+      height: 250px;
+    }
+    button {
+      width: 100px;
+    }
+  </style>
+  <body>
+    <pre>
+        <form method="post" action="/?act=add&id={id}">
+          Type: <input type="text" name="type" value="{type}"/> <input type="text" name="id" value="{id}"/>  <input type="text" name="cdate" value="{cdate}"/> <br/>
+          Tags: <input type="text" name="tags" value="{tags}" size="50"/> <a href="Lisp">Lisp</a> <a href="Emacs">Emacs</a> <br/>
+          Name: <input type="name" name="name" value="{name}" size="100"/><br/>
+          <textarea name="body">{body}</textarea><br/>
+          <button type="submit" name="save">Save</button> <button type="submit">Delete</button><br/>
+        </form>
+        {backRefs}
+    </pre>
+  </body>
+</html>

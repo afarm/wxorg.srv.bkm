@@ -1,0 +1,5 @@
+<Note name="{name}" id="{id}" cdate="{cdate}"
+      url="{url}"
+      tags="{tags}">
+    {body}
+</Note>

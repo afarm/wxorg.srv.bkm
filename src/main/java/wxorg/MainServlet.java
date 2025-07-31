@@ -1,18 +1,23 @@
 package wxorg;
 
-
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import wxorg.util.EntrySorter;
-import wxorg.util.QueryParser;
-import wxorg.view.AddView;
-import wxorg.view.EditView;
-import wxorg.view.ListView;
+import wxorg.actions.AddAction;
+import wxorg.actions.EditAction;
+import wxorg.actions.ListAction;
+import wxorg.template.Template;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 public class MainServlet extends HttpServlet {
 
@@ -24,28 +29,38 @@ public class MainServlet extends HttpServlet {
 
     String dir;
 
-    ParserFile parserEntry;
+    ParserXmlFile parserEntry;
 
-    ListView listView;
+    ListAction listAction;
 
-    AddView addView;
+    AddAction addAction;
 
-    EditView editView;
+    EditAction editAction;
 
     public MainServlet() throws IOException {
-
         Properties properties = new Properties();
         properties.load(new FileInputStream("xorg.cf"));
-
         dir = properties.getProperty("dir").split(";")[0];
         dir = expandPath(dir);
         entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
-        parserEntry = new ParserFile(entryTypes);
+
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
+        String editTemplatePath = "templates/edit.html";
+        //String editTemplate = Files.readString(Path.of(editTemplatePath));
+
+        String xmlTemplatePath = "templates/xml.xml";
+        String xmlTemplate = Files.readString(Path.of(xmlTemplatePath));
+
+        //Template editTemplate = new Template();
+
+        parserEntry = new ParserXmlFile(entryTypes, xmlMapper);
         recursiveParser = new RecursiveParser(dir, parserEntry);
         dataSourceService = new DataSourceService(recursiveParser, dir);
-        listView = new ListView(dataSourceService);
-        addView = new AddView();
-        editView = new EditView(dataSourceService, dir);
+        listAction = new ListAction(dataSourceService);
+        addAction = new AddAction(dir);
+        editAction = new EditAction(dataSourceService, dir, xmlMapper, editTemplatePath);
     }
 
     @Override
@@ -54,28 +69,17 @@ public class MainServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader("Content-Type", "text/html; charset=utf-8");
         request.setCharacterEncoding("UTF-8");
-
         String act = request.getParameter("act");
-        String uid = request.getParameter("uid");
-
         // todo switch ()
-        String data = request.getParameter("data");
-        if (data != null) {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(dir + "/" + uid + ".txt", StandardCharsets.UTF_8));
-            writer.write(data);
-            writer.close();
-            response.sendRedirect("?act=list&sortField=date&sortOrder=desc");
-            return;
-        } else if ("list".equals(act)) {
-            listView.service(request, response);
+        if ("list".equals(act)) {
+            listAction.service(request, response);
         } else if ("add".equals(act)) {
-            addView.service(request, response);
+            addAction.service(request, response);
         } else if ("edit".equals(act)) {
-            editView.service(request, response);
+            editAction.service(request, response);
         } else if ("del".equals(act)) {
-            dataSourceService.delete(request.getParameter("uid"));
-            response.sendRedirect("?act=list&sortField=date&sortOrder=desc");
-            return;
+            dataSourceService.delete(request.getParameter("id"));
+            response.sendRedirect("?act=list&sortField=sdate&sortOrder=desc");
         }
     }
 

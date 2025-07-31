@@ -1,4 +1,4 @@
-package wxorg.view;
+package wxorg.actions;
 
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -6,31 +6,30 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import wxorg.DataSourceService;
-import wxorg.Entry;
 import wxorg.util.EntrySorter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class ListView {
+public class ListAction {
 
     private final DataSourceService dataSourceService;
 
-    public ListView(DataSourceService entriesService) {
-        this.dataSourceService = entriesService;
+    public ListAction(DataSourceService dataSourceService) {
+        this.dataSourceService = dataSourceService;
     }
 
     public void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // tag filter
-        List<Entry> resEntries = new ArrayList<>();
+        List<Map<String, String>> resEntries = new ArrayList<>();
         String[] tags = request.getParameterValues("tag");
         if (tags != null) {
-            HashSet<Entry> resEntriesSet = new HashSet<>();
+            HashSet<Map<String, String>> resEntriesSet = new HashSet<>();
             for (String tag : tags) {
-                List<Entry> entries = dataSourceService.idxTags().get(tag);
+                List<Map<String, String>> entries = dataSourceService.idxTags().get(tag);
                 //if (resEntriesSet.size() > 0) {
-                    for (Entry entry : entries) {
+                    for (Map<String, String> entry : entries) {
                         if (!resEntriesSet.contains(entry)) {
                             resEntriesSet.add(entry);
                         }
@@ -74,15 +73,15 @@ public class ListView {
         resStr += ".. \n";
 
         resStr += "Tag : ";
-        String url = "?act=list&sortField=date&sortOrder=desc";
+        String url = "?act=list&sortField=cdate&sortOrder=desc";
         for (String tag : dataSourceService.idxTags().keySet()) {
             resStr += "<a href='" + url + "&tag=" + tag + "'>" + (ObjectUtils.isEmpty(tag) ? "--" : tag) + "</a> ";
         }
         resStr += "\n";
 
         resStr += "Sort: ";
-        resStr += "<a href='?act=list&sortField=header&sortOrder=desc'>[-] Header</a> ";
-        resStr += "<a href='?act=list&sortField=date&sortOrder=desc'>[^] Date</a> ";
+        resStr += "<a href='?act=list&sortField=name&sortOrder=desc'>[-] Header</a> ";
+        resStr += "<a href='?act=list&sortField=cdate&sortOrder=desc'>[^] Date</a> ";
         resStr += "| ";
 
         resStr += "<a href='?'>[x] Tree</a> ";
@@ -92,24 +91,24 @@ public class ListView {
         resStr += "<a href='?'>Trash</a> ";
         resStr += "\n\n";
 
-        for (Entry entry : resEntries) {
+        for (Map<String, String> entry : resEntries) {
             resStr += String.format("<div> ");
-            resStr += String.format("%-8s ", entry.type);
-            String hdr = StringUtils.abbreviate(entry.header, 80);
-            if (entry.url != null) {
-                resStr += String.format("<a href='%s'><b>%-80s</b></a>", entry.url, hdr);
+            resStr += String.format("%-8s ", entry.get("type"));
+            String hdr = StringUtils.abbreviate(entry.get("header"), 80);
+            if (entry.get("url") != null) {
+                resStr += String.format("<a href='%s'><b>%-80s</b></a>", entry.get("url"), hdr);
             } else {
                 resStr += String.format("%-80s", hdr);
             }
-            resStr += String.format("<a href='/?act=edit&uid=%s'>[edt]</a> ", entry.uid);
-            resStr += String.format("%s ", entry.uid);
-            resStr += String.format("%s ", entry.dateStr);
-            resStr += String.format("<a href='?act=del&uid=%s'>[x]</a> ", entry.uid);
-            resStr += String.format("%-80s", entry.tags);
+            resStr += String.format("<a href='/?act=edit&id=%s'>[edt]</a> ", entry.get("id"));
+            resStr += String.format("%s ", entry.get("id"));
+            resStr += String.format("%s ", entry.get("date"));
+            resStr += String.format("<a href='?act=del&id=%s'>[x]</a> ", entry.get("id"));
+            resStr += String.format("%-80s", entry.get("tags"));
             resStr += String.format("</div>");
             if (showBody != null) {
                 resStr += String.format("<div style='color: #555' >");
-                resStr += String.format("%s", entry.body.indent(10).replaceAll("(?m)^[ \t]*\r?\n", ""));
+                resStr += String.format("%s", entry.get("body").indent(10).replaceAll("(?m)^[ \t]*\r?\n", ""));
                 resStr += String.format("</div>");
             }
             resStr += "";
