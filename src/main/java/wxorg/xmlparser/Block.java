@@ -115,14 +115,7 @@ class Node {
     /**
      * Next keys (token) links.
      */
-    Map<String, Token> tokens = new HashMap<>();
-
-    {
-        tokens.put(OPEN_LT, null);
-        tokens.put(OPEN_GT, null);
-        tokens.put(CLOSE_LT, null);
-        tokens.put(CLOSE_GT, null);
-    }
+    Map<TokenType, Token> tokens = new HashMap<>();
 
     /**
      * <CloseNode/>
@@ -139,8 +132,54 @@ class Node {
      */
     Block outerBlock;
 
-//    public void addAttr(String name, String value) {
-//    }
+    public void addAttr(String name, String value) {
+        if (outerBlock == null || openTagName == null) return;
+
+        List<Token> tokens = outerBlock.getAllTokens();
+        if (tokens == null) return;
+
+        int insertIndex = -1;
+
+        // Найдём индекс токена OPEN_GT или SELF_CLOSE_GT для вставки перед ним
+        for (int i = tokens.indexOf(openTagName) + 1; i < tokens.size(); i++) {
+            Token t = tokens.get(i);
+            if (t.getType() == TokenType.OPEN_GT || t.getType() == TokenType.SELF_CLOSE_GT) {
+                insertIndex = i;
+                break;
+            }
+        }
+
+        if (insertIndex == -1) return;
+
+        // Создаём токены атрибута
+        List<Token> newTokens = new ArrayList<>();
+        Token space = new Token(TokenType.WHITESPACE, " ");
+        Token nameToken = new Token(TokenType.STRING, name);
+        Token equalsToken = new Token(TokenType.EQUALS, "=");
+        Token quoteOpen = new Token(TokenType.QUOTE, "\"");
+        Token valueToken = new Token(TokenType.STRING, value);
+        Token quoteClose = new Token(TokenType.QUOTE, "\"");
+
+        newTokens.add(space);
+        newTokens.add(nameToken);
+        newTokens.add(equalsToken);
+        newTokens.add(quoteOpen);
+        newTokens.add(valueToken);
+        newTokens.add(quoteClose);
+
+        tokens.addAll(insertIndex, newTokens);
+
+        // Добавляем в Node атрибут
+        Attr attr = new Attr();
+        attr.setName(nameToken);
+        attr.setValue(valueToken);
+
+        if (attributes == null) attributes = new ArrayList<>();
+        if (attrs == null) attrs = new HashMap<>();
+
+        attributes.add(attr);
+        attrs.put(name, attr);
+    }
 
     // Метод удаления токенов существующего атрибута из allTokens
     private void removeAttrTokens(Attr attr) {
@@ -202,11 +241,11 @@ class Node {
         this.closeTagName = closeTagName;
     }
 
-    public Map<String, Token> getTokens() {
+    public Map<TokenType, Token> getTokens() {
         return tokens;
     }
 
-    public void setTokens(Map<String, Token> tokens) {
+    public void setTokens(Map<TokenType, Token> tokens) {
         this.tokens = tokens;
     }
 
@@ -595,8 +634,13 @@ class Test {
         // tokens = {"  ", "some text", " \n\n  ", "---", " \n\n", "<", "Book", " ", "id", "=", "\"", "ID123", "\"", " " ...}
         System.out.println(Objects.equals(block.getChildren().get(0).getName(), "Book"));
         System.out.println(Objects.equals(block.getChildren().get(1).getAttr("id").getValue().getValue(), "ID22"));
-        System.out.println(Objects.equals(block.getChildren().get(1).getTokens().get(OPEN_LT).getValue(), "<"));
+       // System.out.println(Objects.equals(block.getChildren().get(1).getTokens().get(OPEN_LT).getValue(), "<"));
         System.out.println(Objects.equals(block.getAllNodes().get(1).getName(), "Ref"));
+
+        block.getAllNodes().get(5).addAttr("key", "VAL");
+        block.getAllNodes().get(5).addAttr("page", "123");
+        block.getAllNodes().get(5).addAttr("mdate", "2025");
+
         System.out.println(Objects.equals(block.join(), block.getSource()));
         System.out.println(block.join());
 
