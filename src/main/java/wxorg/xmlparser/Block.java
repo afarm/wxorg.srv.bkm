@@ -1,5 +1,7 @@
 package wxorg.xmlparser;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -137,60 +139,8 @@ class Node {
      */
     Block outerBlock;
 
-    public void addAttr(String name, String value) {
-        if (attributes == null) {
-            attributes = new ArrayList<>();
-        }
-        if (attrs == null) {
-            attrs = new HashMap<>();
-        }
-        if (outerBlock == null || outerBlock.getAllTokens() == null) {
-            throw new IllegalStateException("Node must have a reference to outer block with allTokens initialized.");
-        }
-
-        // Проверяем есть ли атрибут с таким именем
-        Attr existingAttr = attrs.get(name);
-        if (existingAttr != null) {
-            // Удаляем существующие токены атрибута из allTokens
-            removeAttrTokens(existingAttr);
-            attributes.remove(existingAttr);
-            attrs.remove(name);
-        }
-
-        Token openTagEnd = tokens.get(OPEN_GT);
-        if (openTagEnd == null) {
-            throw new IllegalStateException("Tag end token not found (\"/>\" or \">\")");
-        }
-        int insertIndex = outerBlock.getAllTokens().indexOf(openTagEnd);
-
-        // Создаем токены нового атрибута
-        Token spaceToken = new Token();
-        spaceToken.setValue(" ");
-
-        Token nameToken = new Token();
-        nameToken.setValue(name);
-
-        Token equalToken = new Token();
-        equalToken.setValue("=");
-
-        Token quoteOpen = new Token();
-        quoteOpen.setValue("\"");
-
-        Token valueToken = new Token();
-        valueToken.setValue(value);
-
-        Token quoteClose = new Token();
-        quoteClose.setValue("\"");
-
-        List<Token> tokensToAdd = List.of(spaceToken, nameToken, equalToken, quoteOpen, valueToken, quoteClose);
-        //outerBlock.getAllTokens().addAll(insertIndex, tokensToAdd);
-
-        Attr attr = new Attr();
-        attr.setName(nameToken);
-        attr.setValue(valueToken);
-        attributes.add(attr);
-        attrs.put(name, attr);
-    }
+//    public void addAttr(String name, String value) {
+//    }
 
     // Метод удаления токенов существующего атрибута из allTokens
     private void removeAttrTokens(Attr attr) {
@@ -307,10 +257,24 @@ class Attr {
 }
 
 class Token {
+    TokenType type;
     String value;
+
+    public Token(TokenType type, String value) {
+        this.type = type;
+        this.value = value;
+    }
+
+    public TokenType getType() {
+        return type;
+    }
 
     public String getValue() {
         return value;
+    }
+
+    public void setType(TokenType type) {
+        this.type = type;
     }
 
     public void setValue(String value) {
@@ -319,213 +283,285 @@ class Token {
 
     @Override
     public String toString() {
-        return "Token{" + value + '}';
+        return "Token{" + "type=" + type + ", value='" + value + '\'' + '}';
     }
 }
 
-class Parser {
-    public void parse(Block block) {
-        String src = block.getSource();
-        List<Token> allTokens = new ArrayList<>();
-        block.setAllTokens(allTokens);
+enum TokenType {
+    OPEN_LT,        // <
+    OPEN_GT,        // >
+    SELF_CLOSE_GT,  // />
+    CLOSE_LT,       // </
+    EQUALS,         // =
+    QUOTE,          // "
+    STRING,         // имя тега, имя атрибута, значение атрибута
+    WHITESPACE,     // пробелы, табы, переводы строк
+    TEXT            // текст между тегами (не пробелы)
+}
 
-        List<Node> allNodes = new ArrayList<>();
-        List<Node> children = new ArrayList<>();
-        block.setAllNodes(allNodes);
-        block.setChildren(children);
+class Tokenizer {
 
-        Deque<Node> stack = new ArrayDeque<>();
+    private final String input;
+    private final int length;
+    private int pos = 0;
 
-        int i = 0;
-        while (i < src.length()) {
-            char ch = src.charAt(i);
-
-            if (ch == '<') {
-                int nextClose = src.indexOf('>', i);
-                if (nextClose == -1) break; // malformed
-
-                String tagContent = src.substring(i + 1, nextClose).trim();
-                boolean selfClosed = tagContent.endsWith("/");
-
-                if (tagContent.startsWith("/")) {
-                    // Закрывающий тег
-                    Node current = stack.pop();
-
-                    current.getTokens().put(CLOSE_LT, makeToken("<", allTokens)); // <
-                    makeToken("/", allTokens);                                    // /
-                    Token tagNameToken = makeToken(current.getName(), allTokens); // name
-                    current.setCloseTagName(tagNameToken);
-                    current.getTokens().put(CLOSE_GT, makeToken(">", allTokens)); // >
-
-                    current.setClosed(true);
-                    i = nextClose + 1;
-                    continue;
-                }
-
-                String tagContentRaw = tagContent.replaceFirst("/$", ""); // удаляем / в конце
-                int tagNameEnd = findTagNameEnd(tagContentRaw);
-                String tagName = tagContentRaw.substring(0, tagNameEnd).trim();
-                String attrSection = tagContentRaw.substring(tagNameEnd).trim();
-
-                Node node = new Node();
-                node.setOuterBlock(block);
-                node.setTokens(new HashMap<>());
-                node.getTokens().put(OPEN_LT, makeToken("<", allTokens));
-                node.setOpenTagName(makeToken(tagName, allTokens));
-
-                // Устанавливаем OPEN_GT сразу, до парсинга атрибутов
-                node.getTokens().put(OPEN_GT, makeToken(selfClosed ? "/>" : ">", allTokens));
-
-                node.setAttributes(new ArrayList<>());
-                node.setAttrs(new HashMap<>());
-
-                parseAttrs(attrSection, node, allTokens);
-
-                // Закрытие тега (повторно не нужно, OPEN_GT уже установлен выше)
-                node.setClosed(selfClosed);
-
-                // Добавляем узел в дерево и список узлов
-                if (!stack.isEmpty()) {
-                    Node parent = stack.peek();
-                    if (parent.getChildren() == null) parent.setChildren(new ArrayList<>());
-                    parent.getChildren().add(node);
-                } else {
-                    children.add(node);
-                }
-                allNodes.add(node);
-
-                if (!selfClosed) {
-                    stack.push(node);
-                }
-
-                i = nextClose + 1;
-            } else {
-                // Простой текст
-                int nextTag = src.indexOf('<', i);
-                if (nextTag == -1) {
-                    nextTag = src.length();
-                }
-
-                String text = src.substring(i, nextTag);
-                List<Token> textTokens = splitTextIntoTokens(text);
-                allTokens.addAll(textTokens);
-                i = nextTag;
-            }
-        }
+    public Tokenizer(String input) {
+        this.input = input;
+        this.length = input.length();
     }
 
-    private int findTagNameEnd(String s) {
-        for (int i = 0; i < s.length(); i++) {
-            if (Character.isWhitespace(s.charAt(i))) {
-                return i;
-            }
-        }
-        return s.length();
-    }
-
-    private void parseAttrs(String input, Node node, List<Token> allTokens) {
-        int i = 0;
-        int len = input.length();
-        while (i < len) {
-            // Пропускаем пробелы
-            while (i < len && Character.isWhitespace(input.charAt(i))) {
-                allTokens.add(makeToken(String.valueOf(input.charAt(i)), allTokens));
-                i++;
-            }
-
-            // Читаем имя
-            int start = i;
-            while (i < len && !Character.isWhitespace(input.charAt(i)) && input.charAt(i) != '=') {
-                i++;
-            }
-            if (i == start) break; // ничего не нашли
-            String name = input.substring(start, i);
-            Token nameToken = makeToken(name, allTokens);
-
-            // Пропускаем пробелы
-            while (i < len && Character.isWhitespace(input.charAt(i))) {
-                allTokens.add(makeToken(String.valueOf(input.charAt(i)), allTokens));
-                i++;
-            }
-
-            // Ожидаем '='
-            if (i >= len || input.charAt(i) != '=') break;
-            allTokens.add(makeToken("=", allTokens));
-            i++;
-
-            // Пропускаем пробелы
-            while (i < len && Character.isWhitespace(input.charAt(i))) {
-                allTokens.add(makeToken(String.valueOf(input.charAt(i)), allTokens));
-                i++;
-            }
-
-            // Ожидаем открывающую кавычку
-            if (i >= len || input.charAt(i) != '"') break;
-            allTokens.add(makeToken("\"", allTokens));
-            i++;
-
-            // Читаем значение до закрывающей кавычки
-            start = i;
-            while (i < len && input.charAt(i) != '"') {
-                i++;
-            }
-            String value = input.substring(start, i);
-            Token valueToken = makeToken(value, allTokens);
-
-            // Закрывающая кавычка
-            if (i < len && input.charAt(i) == '"') {
-                allTokens.add(makeToken("\"", allTokens));
-                i++;
-            }
-
-            // Сохраняем атрибут
-            // Проверяем, есть ли уже атрибут с таким именем
-            if (node.getAttr(name) != null) {
-                // обновляем значение существующего атрибута (заменяем value Token)
-                Attr attr = node.getAttr(name);
-                attr.setName(nameToken);
-                attr.setValue(valueToken);
-                attr.getValue().setValue(value);
-                node.getAttributes().add(attr);
-                node.getAttrs().put(name, attr);
-            } else {
-                // вставляем новый атрибут как у тебя сейчас — пробел, имя, =, "значение", "
-                node.addAttr(name, value);
-            }
-        }
-    }
-
-    private List<Token> splitTextIntoTokens(String text) {
+    public List<Token> tokenize() {
         List<Token> tokens = new ArrayList<>();
 
-        int start = 0;
-        while (start < text.length()) {
-            char ch = text.charAt(start);
-            int end = start;
+        while (pos < length) {
+            char ch = input.charAt(pos);
 
-            boolean isWhitespace = Character.isWhitespace(ch);
-            while (end < text.length() && Character.isWhitespace(text.charAt(end)) == isWhitespace) {
-                end++;
+            if (ch == '<') {
+                if (peekNext() == '/') {
+                    pos += 2;
+                    tokens.add(new Token(TokenType.CLOSE_LT, "</"));
+                } else {
+                    pos++;
+                    tokens.add(new Token(TokenType.OPEN_LT, "<"));
+                }
+            } else if (ch == '/') {
+                if (peekNext() == '>') {
+                    pos += 2;
+                    tokens.add(new Token(TokenType.SELF_CLOSE_GT, "/>"));
+                } else {
+                    pos++;
+                    tokens.add(new Token(TokenType.STRING, "/"));
+                }
+            } else if (ch == '>') {
+                pos++;
+                tokens.add(new Token(TokenType.OPEN_GT, ">"));
+            } else if (ch == '=') {
+                pos++;
+                tokens.add(new Token(TokenType.EQUALS, "="));
+            } else if (ch == '"' || ch == '\'') {
+                // Добавляем отдельный токен для открывающей кавычки
+                tokens.add(new Token(TokenType.QUOTE, String.valueOf(ch)));
+                pos++;
+                int start = pos;
+                while (pos < length && input.charAt(pos) != ch) {
+                    pos++;
+                }
+                // Токен для содержимого между кавычками
+                String strValue = input.substring(start, pos);
+                tokens.add(new Token(TokenType.STRING, strValue));
+
+                // Добавляем отдельный токен для закрывающей кавычки
+                if (pos < length) {
+                    tokens.add(new Token(TokenType.QUOTE, String.valueOf(ch)));
+                    pos++;
+                }
+            } else if (Character.isWhitespace(ch)) {
+                int start = pos;
+                while (pos < length && Character.isWhitespace(input.charAt(pos))) {
+                    pos++;
+                }
+                String spaceStr = input.substring(start, pos);
+                tokens.add(new Token(TokenType.WHITESPACE, spaceStr));
+            } else {
+                // Читаем текст или имя (вне тегов)
+                int start = pos;
+                while (pos < length && !isSpecialChar(input.charAt(pos))) {
+                    pos++;
+                }
+                String str = input.substring(start, pos);
+                tokens.add(new Token(TokenType.STRING, str));
             }
-
-            String part = text.substring(start, end);
-            Token token = new Token();
-            token.setValue(part);
-            tokens.add(token);
-
-            start = end;
         }
 
         return tokens;
     }
 
-    private Token makeToken(String value, List<Token> allTokens) {
-        Token token = new Token();
-        token.setValue(value);
-        allTokens.add(token);
-        return token;
+    private char peekNext() {
+        if (pos + 1 >= length) return '\0';
+        return input.charAt(pos + 1);
+    }
+
+    private boolean isSpecialChar(char ch) {
+        return ch == '<' || ch == '>' || ch == '/' || ch == '=' || ch == '"' || ch == '\'' || Character.isWhitespace(ch);
     }
 }
+
+class Parser {
+
+    private List<Token> tokens;
+    private int pos;
+    private int length;
+
+    public void parse(Block block) {
+        Tokenizer tokenizer = new Tokenizer(block.getSource());
+        tokens = tokenizer.tokenize();
+        block.setAllTokens(tokens);
+        pos = 0;
+        length = tokens.size();
+
+        block.setChildren(new ArrayList<>());
+        List<Node> allNodes = new ArrayList<>();
+        block.setAllNodes(allNodes);
+
+        while (pos < length) {
+            Token token = tokens.get(pos);
+            if (token.getType() == TokenType.OPEN_LT) {
+                Node node = parseNode(block);
+                if (node != null) {
+                    block.getChildren().add(node);
+                    allNodes.add(node);
+                }
+            } else if (token.getType() == TokenType.WHITESPACE || token.getType() == TokenType.TEXT || token.getType() == TokenType.STRING) {
+                // Можно игнорировать или сохранить как текстовый узел
+                pos++;
+            } else {
+                // Просто сдвигаем позицию, чтобы не зациклиться
+                pos++;
+            }
+        }
+    }
+
+    private Node parseNode(Block outerBlock) {
+        // Начинается с OPEN_LT
+        if (pos >= length || tokens.get(pos).getType() != TokenType.OPEN_LT) return null;
+
+        Node node = new Node();
+        node.setOuterBlock(outerBlock);
+        pos++; // пропускаем '<'
+
+        // Получаем имя тега
+        if (pos >= length || tokens.get(pos).getType() != TokenType.STRING) {
+            // Ошибка парсинга
+            return null;
+        }
+        Token tagName = tokens.get(pos);
+        node.setOpenTagName(tagName);
+        pos++;
+
+        // Читаем атрибуты
+        List<Attr> attributes = new ArrayList<>();
+        Map<String, Attr> attrsMap = new HashMap<>();
+        while (pos < length) {
+            Token t = tokens.get(pos);
+
+            if (t.getType() == TokenType.WHITESPACE) {
+                pos++;
+                continue;
+            }
+            if (t.getType() == TokenType.OPEN_GT) {
+                pos++; // '>'
+                break;
+            }
+            if (t.getType() == TokenType.SELF_CLOSE_GT) {
+                // Тег самозакрывающийся
+                node.setClosed(true);
+                pos++;
+                break;
+            }
+            if (t.getType() == TokenType.CLOSE_LT) {
+                // Закрывающий тег: </...>
+                // не должно быть здесь, ошибка
+                return null;
+            }
+            // Должен быть атрибут: имя '=' '"' значение '"'
+            if (t.getType() == TokenType.STRING) {
+                Token attrNameToken = t;
+                pos++;
+
+                // ожидаем '='
+                if (pos >= length || tokens.get(pos).getType() != TokenType.EQUALS) {
+                    return null;
+                }
+                pos++;
+
+                // ожидаем QUOTE
+                if (pos >= length || tokens.get(pos).getType() != TokenType.QUOTE) {
+                    return null;
+                }
+                pos++;
+
+                // ожидаем STRING (значение атрибута)
+                if (pos >= length || tokens.get(pos).getType() != TokenType.STRING) {
+                    return null;
+                }
+                Token attrValueToken = tokens.get(pos);
+                pos++;
+
+                // ожидаем QUOTE закрывающую
+                if (pos >= length || tokens.get(pos).getType() != TokenType.QUOTE) {
+                    return null;
+                }
+                pos++;
+
+                Attr attr = new Attr();
+                attr.setName(attrNameToken);
+                attr.setValue(attrValueToken);
+                attributes.add(attr);
+                attrsMap.put(attrNameToken.getValue(), attr);
+
+                continue;
+            }
+            // Если пришли сюда - неожиданное
+            pos++;
+        }
+
+        node.setAttributes(attributes);
+        node.setAttrs(attrsMap);
+
+        // Если тег закрыт самозакрывающийся, не парсим детей
+        if (node.isClosed()) {
+            return node;
+        }
+
+        // Парсим внутреннее содержимое - дети и текст
+        List<Node> children = new ArrayList<>();
+        node.setChildren(children);
+
+        while (pos < length) {
+            Token t = tokens.get(pos);
+            if (t.getType() == TokenType.OPEN_LT) {
+                // Может быть открывающий тег или закрывающий
+                if (pos + 1 < length && tokens.get(pos + 1).getType() == TokenType.CLOSE_LT) {
+                    // Это закрывающий тег
+                    break;
+                }
+                // Вложенный узел
+                Node child = parseNode(node.getOuterBlock());
+                if (child != null) {
+                    children.add(child);
+                    outerBlock.getAllNodes().add(child);
+                }
+            } else if (t.getType() == TokenType.CLOSE_LT) {
+                // Закрывающий тег
+                break;
+            } else {
+                // Текстовое содержимое между тегами - можно сделать как Node с текст
+                // Либо пропускаем
+                pos++;
+            }
+        }
+
+        // Ждем закрывающий тег: </tagName>
+        if (pos < length && tokens.get(pos).getType() == TokenType.CLOSE_LT) {
+            pos++; // пропускаем '</'
+
+            // Следующее должен быть STRING с именем тега
+            if (pos >= length) return node;
+
+            Token closeName = tokens.get(pos);
+            pos++;
+            node.setCloseTagName(closeName);
+
+            // Пропускаем '>'
+            if (pos < length && tokens.get(pos).getType() == TokenType.OPEN_GT) {
+                pos++;
+            }
+        }
+
+        return node;
+    }
+}
+
 
 class Test {
     public static void main(String[] args) {
@@ -550,13 +586,18 @@ class Test {
 
         Parser parser = new Parser();
         parser.parse(block);
+
+        System.out.println(block.getSource());
+
+//        Tokenizer tokenizer = new Tokenizer(block.getSource());
+//        tokenizer.tokenize().forEach(System.out::println);
+
         // tokens = {"  ", "some text", " \n\n  ", "---", " \n\n", "<", "Book", " ", "id", "=", "\"", "ID123", "\"", " " ...}
         System.out.println(Objects.equals(block.getChildren().get(0).getName(), "Book"));
         System.out.println(Objects.equals(block.getChildren().get(1).getAttr("id").getValue().getValue(), "ID22"));
         System.out.println(Objects.equals(block.getChildren().get(1).getTokens().get(OPEN_LT).getValue(), "<"));
         System.out.println(Objects.equals(block.getAllNodes().get(1).getName(), "Ref"));
         System.out.println(Objects.equals(block.join(), block.getSource()));
-        System.out.println(block.getSource());
         System.out.println(block.join());
 
     }
