@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import wxorg.actions.AddAction;
 import wxorg.actions.EditAction;
 import wxorg.actions.ListAction;
-import wxorg.template.Template;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +28,7 @@ public class MainServlet extends HttpServlet {
 
     String dir;
 
-    ParserXmlFile parserEntry;
+    ParserXmlFile parserXmlFile;
 
     ListAction listAction;
 
@@ -55,8 +54,8 @@ public class MainServlet extends HttpServlet {
 
         //Template editTemplate = new Template();
 
-        parserEntry = new ParserXmlFile(entryTypes, xmlMapper);
-        recursiveParser = new RecursiveParser(dir, parserEntry);
+        parserXmlFile = new ParserXmlFile(entryTypes, xmlMapper);
+        recursiveParser = new RecursiveParser(dir, parserXmlFile);
         dataSourceService = new DataSourceService(recursiveParser, dir);
         listAction = new ListAction(dataSourceService);
         addAction = new AddAction(dir);

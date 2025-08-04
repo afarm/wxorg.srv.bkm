@@ -1,0 +1,25 @@
+<Note name="Some Name" id="12" cdate="2025-01-01 10:10"
+      url="http://zz.com"
+      tags="Worl Lisp">
+    Some text
+    <title>Qaa</title>
+</Note>
+
+        some text
+
+        ---
+
+<Book id="ID123" cdate="2025-01-01"
+      url="http://www.com">
+    text
+    <Ref id="ID123123"/>
+    <Ref id="ID123dddd"/>
+</Book>
+
+<Node id="ID22" cdate="2025-02-01"
+      url="http://www.qqq" key="VAL" page="123" mdate="2025">
+    text
+    <Ref id="ID125551"/>
+    <Ref id="ID123555"/>
+</Node>
+        text

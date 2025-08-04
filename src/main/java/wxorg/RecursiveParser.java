@@ -8,11 +8,11 @@ public class RecursiveParser {
 
     private String dir;
 
-    private final ParserXmlFile parserFile;
+    private final ParserXmlFile parserXmlFile;
 
-    public RecursiveParser(String dir, ParserXmlFile parserFile) {
+    public RecursiveParser(String dir, ParserXmlFile parserXmlFile) {
         this.dir = dir;
-        this.parserFile = parserFile;
+        this.parserXmlFile = parserXmlFile;
     }
 
     public List<Map<String, String>> parse() throws IOException {
@@ -22,7 +22,7 @@ public class RecursiveParser {
                 .filter(p -> p.toString().endsWith(".xml"))
                 .forEach(p -> {
                     try {
-                        List<Map<String, String>> entries = parserFile.parseFile(p);
+                        List<Map<String, String>> entries = parserXmlFile.parseFile(p);
                         all.addAll(entries);
                     } catch (IOException e) {
                         System.err.println("Error parsing file: " + p);

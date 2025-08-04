@@ -2,7 +2,7 @@ package wxorg.xmlparser;
 
 public enum TokenType {
     OPEN_LT,        // <
-    OPEN_GT,        // >
+    GT,             // >  -  begin tag close || end tag close
     SELF_CLOSE_GT,  // />
     CLOSE_LT,       // </
     EQUALS,         // =

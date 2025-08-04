@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Parser {
+import static wxorg.xmlparser.TokenType.*;
+
+public class XmlParser {
 
     private List<Token> tokens;
 
@@ -13,26 +15,26 @@ public class Parser {
 
     private int length;
 
-    public void parse(Block block) {
-        Tokenizer tokenizer = new Tokenizer(block.getSource());
+    public void parse(RootBlock rootBlock) {
+        Tokenizer tokenizer = new Tokenizer(rootBlock.getSource());
         tokens = tokenizer.tokenize();
-        block.setAllTokens(tokens);
+        rootBlock.setAllTokens(tokens);
         pos = 0;
         length = tokens.size();
 
-        block.setChildren(new ArrayList<>());
-        List<Node> allNodes = new ArrayList<>();
-        block.setAllNodes(allNodes);
+        rootBlock.setChildren(new ArrayList<>());
+        List<XmlNode> allNodes = new ArrayList<>();
+        rootBlock.setAllNodes(allNodes);
 
         while (pos < length) {
             Token token = tokens.get(pos);
-            if (token.getType() == TokenType.OPEN_LT) {
-                Node node = parseNode(block);
+            if (token.getType() == OPEN_LT) {
+                XmlNode node = parseNode(rootBlock);
                 if (node != null) {
-                    block.getChildren().add(node);
+                    rootBlock.getChildren().add(node);
                     allNodes.add(node);
                 }
-            } else if (token.getType() == TokenType.WHITESPACE || token.getType() == TokenType.TEXT || token.getType() == TokenType.STRING) {
+            } else if (token.getType() == WHITESPACE || token.getType() == TEXT || token.getType() == STRING) {
                 // Можно игнорировать или сохранить как текстовый узел
                 pos++;
             } else {
@@ -42,16 +44,19 @@ public class Parser {
         }
     }
 
-    private Node parseNode(Block outerBlock) {
+    private XmlNode parseNode(RootBlock rootBlock) {
         // Начинается с OPEN_LT
-        if (pos >= length || tokens.get(pos).getType() != TokenType.OPEN_LT) return null;
+        if (pos >= length || tokens.get(pos).getType() != OPEN_LT) {
+            return null;
+        }
 
-        Node node = new Node();
-        node.setOuterBlock(outerBlock);
+        XmlNode node = new XmlNode();
+        node.setOpen_lt(tokens.get(pos));
+        node.setRootBlock(rootBlock);
         pos++; // пропускаем '<'
 
         // Получаем имя тега
-        if (pos >= length || tokens.get(pos).getType() != TokenType.STRING) {
+        if (pos >= length || tokens.get(pos).getType() != STRING) {
             // Ошибка парсинга
             return null;
         }
@@ -63,53 +68,55 @@ public class Parser {
         List<Attr> attributes = new ArrayList<>();
         Map<String, Attr> attrsMap = new HashMap<>();
         while (pos < length) {
-            Token t = tokens.get(pos);
+            Token token = tokens.get(pos);
 
-            if (t.getType() == TokenType.WHITESPACE) {
+            if (token.getType() == WHITESPACE) {
                 pos++;
                 continue;
             }
-            if (t.getType() == TokenType.OPEN_GT) {
+            if (token.getType() == GT) {
+                node.setOpen_gt(token);
                 pos++; // '>'
                 break;
             }
-            if (t.getType() == TokenType.SELF_CLOSE_GT) {
+            if (token.getType() == SELF_CLOSE_GT) {
                 // Тег самозакрывающийся
                 node.setClosed(true);
+                node.setOpen_gt(token);
                 pos++;
                 break;
             }
-            if (t.getType() == TokenType.CLOSE_LT) {
+            if (token.getType() == CLOSE_LT) {
                 // Закрывающий тег: </...>
                 // не должно быть здесь, ошибка
                 return null;
             }
             // Должен быть атрибут: имя '=' '"' значение '"'
-            if (t.getType() == TokenType.STRING) {
-                Token attrNameToken = t;
+            if (token.getType() == STRING) {
+                Token attrNameToken = token;
                 pos++;
 
                 // ожидаем '='
-                if (pos >= length || tokens.get(pos).getType() != TokenType.EQUALS) {
+                if (pos >= length || tokens.get(pos).getType() != EQUALS) {
                     return null;
                 }
                 pos++;
 
                 // ожидаем QUOTE
-                if (pos >= length || tokens.get(pos).getType() != TokenType.QUOTE) {
+                if (pos >= length || tokens.get(pos).getType() != QUOTE) {
                     return null;
                 }
                 pos++;
 
                 // ожидаем STRING (значение атрибута)
-                if (pos >= length || tokens.get(pos).getType() != TokenType.STRING) {
+                if (pos >= length || tokens.get(pos).getType() != STRING) {
                     return null;
                 }
                 Token attrValueToken = tokens.get(pos);
                 pos++;
 
                 // ожидаем QUOTE закрывающую
-                if (pos >= length || tokens.get(pos).getType() != TokenType.QUOTE) {
+                if (pos >= length || tokens.get(pos).getType() != QUOTE) {
                     return null;
                 }
                 pos++;
@@ -126,8 +133,8 @@ public class Parser {
             pos++;
         }
 
-        node.setAttributes(attributes);
-        node.setAttrs(attrsMap);
+        node.setAttrsList(attributes);
+        node.setAttrsMap(attrsMap);
 
         // Если тег закрыт самозакрывающийся, не парсим детей
         if (node.isClosed()) {
@@ -135,24 +142,25 @@ public class Parser {
         }
 
         // Парсим внутреннее содержимое - дети и текст
-        List<Node> children = new ArrayList<>();
+        List<XmlNode> children = new ArrayList<>();
         node.setChildren(children);
 
         while (pos < length) {
-            Token t = tokens.get(pos);
-            if (t.getType() == TokenType.OPEN_LT) {
+            Token token = tokens.get(pos);
+            if (token.getType() == OPEN_LT) {
                 // Может быть открывающий тег или закрывающий
-                if (pos + 1 < length && tokens.get(pos + 1).getType() == TokenType.CLOSE_LT) {
+                if (pos + 1 < length && tokens.get(pos + 1).getType() == CLOSE_LT) {
+                    node.setClose_lt(tokens.get(pos + 1));
                     // Это закрывающий тег
                     break;
                 }
                 // Вложенный узел
-                Node child = parseNode(node.getOuterBlock());
+                XmlNode child = parseNode(node.getRootBlock());
                 if (child != null) {
                     children.add(child);
-                    outerBlock.getAllNodes().add(child);
+                    rootBlock.getAllNodes().add(child);
                 }
-            } else if (t.getType() == TokenType.CLOSE_LT) {
+            } else if (token.getType() == CLOSE_LT) {
                 // Закрывающий тег
                 break;
             } else {
@@ -163,22 +171,30 @@ public class Parser {
         }
 
         // Ждем закрывающий тег: </tagName>
-        if (pos < length && tokens.get(pos).getType() == TokenType.CLOSE_LT) {
+        if (pos < length && tokens.get(pos).getType() == CLOSE_LT) {
+            node.setClose_lt(tokens.get(pos));
             pos++; // пропускаем '</'
 
             // Следующее должен быть STRING с именем тега
-            if (pos >= length) return node;
+            if (pos >= length) {
+                return node;
+            }
 
             Token closeName = tokens.get(pos);
             pos++;
             node.setCloseTagName(closeName);
 
             // Пропускаем '>'
-            if (pos < length && tokens.get(pos).getType() == TokenType.OPEN_GT) {
+            if (pos < length && tokens.get(pos).getType() == GT) {
+                node.setClose_gt(tokens.get(pos));
                 pos++;
             }
         }
 
         return node;
+    }
+
+    public void addNode(String name) {
+
     }
 }

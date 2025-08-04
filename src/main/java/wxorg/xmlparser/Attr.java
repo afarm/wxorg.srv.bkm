@@ -19,4 +19,12 @@ public class Attr {
     public void setValue(Token value) {
         this.value = value;
     }
+
+    @Override
+    public String toString() {
+        return "Attr{" +
+                "name=" + name +
+                ", value=" + value +
+                '}';
+    }
 }

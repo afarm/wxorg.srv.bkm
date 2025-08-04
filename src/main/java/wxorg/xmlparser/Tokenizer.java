@@ -38,7 +38,7 @@ public class Tokenizer {
                 }
             } else if (ch == '>') {
                 pos++;
-                tokens.add(new Token(TokenType.OPEN_GT, ">"));
+                tokens.add(new Token(TokenType.GT, ">"));
             } else if (ch == '=') {
                 pos++;
                 tokens.add(new Token(TokenType.EQUALS, "="));

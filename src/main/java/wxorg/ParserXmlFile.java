@@ -25,6 +25,10 @@ public class ParserXmlFile {
 
     public List<Map<String, String>> parseFile(Path path) throws IOException {
         Map<String, String> xml = xmlMapper.readValue(new File(path.toString()), Map.class);
+
+        // parse XmlParser
+        // Map - _file id cdate name url tags
+
         xml.put("_file", path.toString());
         List<Map<String, String>> entries = new ArrayList<>();
         entries.add(xml);
