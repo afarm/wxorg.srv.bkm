@@ -10,6 +10,7 @@ import static wxorg.xmlparser.TokenType.SELF_CLOSE_GT;
 
 public class XmlNode {
 
+    private final List<Token> tokens;
     /**
      * Children nodes.
      */
@@ -54,12 +55,11 @@ public class XmlNode {
      */
     boolean isClosed;
 
-    /**
-     * Outer block of node
-     */
-    RootBlock rootBlock;
-
     List<String> attrsOrder = List.of(new String[]{"id", "cdate", "<<HERE>>", "url", "tags",});
+
+    public XmlNode(List<Token> tokens) {
+        this.tokens = tokens;
+    }
 
     // ?? add "\n" after attr
     // ?? add other attr to first line
@@ -74,11 +74,9 @@ public class XmlNode {
     }
 
     public void addAttr(String name, String value) {
-        if (rootBlock == null || openTagName == null) {
+        if (openTagName == null) {
             return;
         }
-
-        List<Token> tokens = rootBlock.getAllTokens();
         if (tokens == null) {
             return;
         }
@@ -194,14 +192,6 @@ public class XmlNode {
         isClosed = closed;
     }
 
-    public RootBlock getRootBlock() {
-        return rootBlock;
-    }
-
-    public void setRootBlock(RootBlock rootBlock) {
-        this.rootBlock = rootBlock;
-    }
-
     public Token getOpen_gt() {
         return open_gt;
     }
@@ -243,7 +233,6 @@ public class XmlNode {
                 ", openTagName=" + openTagName +
                 ", closeTagName=" + closeTagName +
                 ", isClosed=" + isClosed +
-                ", outerBlock=" + rootBlock +
                 '}';
     }
 }

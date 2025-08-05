@@ -9,29 +9,45 @@ import static wxorg.xmlparser.TokenType.*;
 
 public class XmlParser {
 
+    /**
+     * Source text.
+     */
+    String source;
+
+    /**
+     * Result parsed all node, include inner.
+     */
+    List<XmlNode> allNodes = new ArrayList<>();
+
+    /**
+     * Map by id.
+     * ??? only listed types - Note, Book, Bookmark, Pass, ...
+     */
+    Map<String, XmlNode> nodeById = new HashMap<>();
+
+    /**
+     * Only children nodes.
+     */
+    List<XmlNode> children = new ArrayList<>();
+
     private List<Token> tokens;
 
     private int pos;
 
     private int length;
 
-    public void parse(RootBlock rootBlock) {
-        Tokenizer tokenizer = new Tokenizer(rootBlock.getSource());
+    public void parse() {
+        Tokenizer tokenizer = new Tokenizer(source);
         tokens = tokenizer.tokenize();
-        rootBlock.setAllTokens(tokens);
         pos = 0;
         length = tokens.size();
-
-        rootBlock.setChildren(new ArrayList<>());
-        List<XmlNode> allNodes = new ArrayList<>();
-        rootBlock.setAllNodes(allNodes);
 
         while (pos < length) {
             Token token = tokens.get(pos);
             if (token.getType() == OPEN_LT) {
-                XmlNode node = parseNode(rootBlock);
+                XmlNode node = parseNode();
                 if (node != null) {
-                    rootBlock.getChildren().add(node);
+                    children.add(node);
                     allNodes.add(node);
                 }
             } else if (token.getType() == WHITESPACE || token.getType() == TEXT || token.getType() == STRING) {
@@ -44,15 +60,14 @@ public class XmlParser {
         }
     }
 
-    private XmlNode parseNode(RootBlock rootBlock) {
+    private XmlNode parseNode() {
         // Начинается с OPEN_LT
         if (pos >= length || tokens.get(pos).getType() != OPEN_LT) {
             return null;
         }
 
-        XmlNode node = new XmlNode();
+        XmlNode node = new XmlNode(tokens);
         node.setOpen_lt(tokens.get(pos));
-        node.setRootBlock(rootBlock);
         pos++; // пропускаем '<'
 
         // Получаем имя тега
@@ -155,10 +170,10 @@ public class XmlParser {
                     break;
                 }
                 // Вложенный узел
-                XmlNode child = parseNode(node.getRootBlock());
+                XmlNode child = parseNode();
                 if (child != null) {
                     children.add(child);
-                    rootBlock.getAllNodes().add(child);
+                    allNodes.add(child);
                 }
             } else if (token.getType() == CLOSE_LT) {
                 // Закрывающий тег
@@ -197,4 +212,56 @@ public class XmlParser {
     public void addNode(String name) {
 
     }
+
+    public List<XmlNode> getAllNodes() {
+        return allNodes;
+    }
+
+    public void setAllNodes(List<XmlNode> allXmlNodes) {
+        this.allNodes = allXmlNodes;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public List<XmlNode> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<XmlNode> children) {
+        this.children = children;
+    }
+
+    public String join() {
+        StringBuilder res = new StringBuilder();
+        for (Token token : tokens) {
+            res.append(token.getValue());
+        }
+        return res.toString();
+    }
+
+    public void addNode() { // after/before/first/last
+
+    }
+
+    public void delNode(XmlNode node) {
+
+    }
+
+    // --- getters / setters
+
+    public Map<String, XmlNode> getNodeById() {
+        return nodeById;
+    }
+
+    public void setNodeById(Map<String, XmlNode> nodeById) {
+        this.nodeById = nodeById;
+    }
+
+
 }

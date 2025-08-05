@@ -1,7 +1,6 @@
 package wxorg.xmlparser.test;
 
 import org.junit.Test;
-import wxorg.xmlparser.RootBlock;
 import wxorg.xmlparser.XmlParser;
 
 public class NewNodeTest {
@@ -9,13 +8,12 @@ public class NewNodeTest {
     @Test
     public void main() {
 
-        RootBlock rootBlock = new RootBlock();
-        rootBlock.setSource("");
         XmlParser xmlParser = new XmlParser();
-        xmlParser.parse(rootBlock);
+        xmlParser.setSource("");
+        xmlParser.parse();
         xmlParser.addNode("NNN");
 
-        String joined = rootBlock.join();
+        String joined = xmlParser.join();
         System.out.println(joined);
     }
 }
