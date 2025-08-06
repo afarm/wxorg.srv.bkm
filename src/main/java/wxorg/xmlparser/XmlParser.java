@@ -7,6 +7,27 @@ import java.util.Map;
 
 import static wxorg.xmlparser.TokenType.*;
 
+/*
+
+2. Поддержка комментариев (<!-- ... -->) ok
+Добавить в токенизатор и парсер (можно сохранить как отдельный узел или игнорировать).
+
+3. Реализация addAttrByOrder() и attrsReorder()
+С учётом attrsOrder, переставлять токены атрибутов и перестраивать tokens, attrsList, attrsMap.
+
+4. Методы вставки/удаления узлов (addNode, delNode)
+Добавлять или удалять узлы из tokens, children, allNodes.
+
+5. Поддержка CDATA
+Сейчас <tag><![CDATA[some <xml>]]></tag> не распознаётся — добавить в Tokenizer как отдельный TokenType.CDATA.
+
+6. Валидация (для отладки)
+Можно добавить проверки: совпадают ли openTagName и closeTagName, нет ли незакрытых тегов и т.д.
+
+7. Сериализация дерева с форматированием
+Сейчас join() просто собирает tokens, но можно реализовать toXmlString() с отступами, переносами, и т.д.
+
+ */
 public class XmlParser {
 
     /**
@@ -61,6 +82,9 @@ public class XmlParser {
     }
 
     private XmlNode parseNode() {
+
+        int startPos = pos; // запомни позицию начала узла
+
         // Начинается с OPEN_LT
         if (pos >= length || tokens.get(pos).getType() != OPEN_LT) {
             return null;
@@ -106,6 +130,13 @@ public class XmlParser {
                 // не должно быть здесь, ошибка
                 return null;
             }
+
+            if (token.getType() == COMMENT) {
+                // Можно пропустить или сохранить как отдельный узел
+                pos++;
+                continue;
+            }
+
             // Должен быть атрибут: имя '=' '"' значение '"'
             if (token.getType() == STRING) {
                 Token attrNameToken = token;
@@ -206,11 +237,80 @@ public class XmlParser {
             }
         }
 
+        node.setTokenStartIndex(startPos);
+        node.setTokenEndIndex(pos);
         return node;
     }
 
-    public void addNode(String name) {
+    public void addNode(XmlNode parent, XmlNode newNode, InsertMode mode) {
+        if (parent == null || newNode == null || parent.getChildren() == null) {
+            return;
+        }
+        List<XmlNode> siblings = parent.getChildren();
+        int insertIndex = switch (mode) {
+            case FIRST -> 0;
+            case LAST -> siblings.size();
+            default -> -1; // для BEFORE/AFTER нужна доработка
+        };
 
+        if (insertIndex == -1) return;
+        siblings.add(insertIndex, newNode);
+        allNodes.add(newNode);
+
+        // Вставим токены в нужное место внутри parent
+        Token open_gt = parent.getOpen_gt();
+        Token close_lt = parent.getClose_lt();
+
+        if (open_gt == null || close_lt == null) return;
+
+        int start = tokens.indexOf(open_gt) + 1;
+        int end = tokens.indexOf(close_lt);
+
+        int tokenInsertIndex = (mode == InsertMode.FIRST)
+                ? tokens.indexOf(open_gt) + 1
+                : tokens.indexOf(close_lt);
+
+        List<Token> newTokens = new ArrayList<>();
+        newTokens.add(new Token(TokenType.WHITESPACE, "\n"));
+        newTokens.addAll(tokens.subList(newNode.getTokenStartIndex(), newNode.getTokenEndIndex()));
+        newTokens.add(new Token(TokenType.WHITESPACE, "\n"));
+
+        tokens.addAll(tokenInsertIndex, newTokens);
+    }
+
+    public void delNode(XmlNode node) {
+        if (node == null) return;
+
+        // Удалить из дерева
+        for (XmlNode parent : allNodes) {
+            if (parent.getChildren() != null && parent.getChildren().remove(node)) {
+                break;
+            }
+        }
+
+        // Удалить из общего списка
+        allNodes.remove(node);
+
+        // Удалить токены
+        tokens.subList(node.getTokenStartIndex(), node.getTokenEndIndex()).clear();
+    }
+
+    public String join() {
+        StringBuilder res = new StringBuilder();
+        for (Token token : tokens) {
+            res.append(token.getValue());
+        }
+        return res.toString();
+    }
+
+    // --- getters / setters
+
+    public Map<String, XmlNode> getNodeById() {
+        return nodeById;
+    }
+
+    public void setNodeById(Map<String, XmlNode> nodeById) {
+        this.nodeById = nodeById;
     }
 
     public List<XmlNode> getAllNodes() {
@@ -237,31 +337,11 @@ public class XmlParser {
         this.children = children;
     }
 
-    public String join() {
-        StringBuilder res = new StringBuilder();
-        for (Token token : tokens) {
-            res.append(token.getValue());
-        }
-        return res.toString();
+    public List<Token> getTokens() {
+        return tokens;
     }
 
-    public void addNode() { // after/before/first/last
-
+    public void setTokens(List<Token> tokens) {
+        this.tokens = tokens;
     }
-
-    public void delNode(XmlNode node) {
-
-    }
-
-    // --- getters / setters
-
-    public Map<String, XmlNode> getNodeById() {
-        return nodeById;
-    }
-
-    public void setNodeById(Map<String, XmlNode> nodeById) {
-        this.nodeById = nodeById;
-    }
-
-
 }

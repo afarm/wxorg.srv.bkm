@@ -11,6 +11,11 @@ import static wxorg.xmlparser.TokenType.SELF_CLOSE_GT;
 public class XmlNode {
 
     private final List<Token> tokens;
+
+    private int tokenStartIndex;
+
+    private int tokenEndIndex;
+
     /**
      * Children nodes.
      */
@@ -136,6 +141,10 @@ public class XmlNode {
 
     // ---
 
+    public List<Token> getTokens() {
+        return tokens;
+    }
+
     public Map<String, Attr> getAttrsMap() {
         return attrsMap;
     }
@@ -222,6 +231,22 @@ public class XmlNode {
 
     public void setClose_gt(Token close_gt) {
         this.close_gt = close_gt;
+    }
+
+    public int getTokenStartIndex() {
+        return tokenStartIndex;
+    }
+
+    public int getTokenEndIndex() {
+        return tokenEndIndex;
+    }
+
+    public void setTokenStartIndex(int index) {
+        this.tokenStartIndex = index;
+    }
+
+    public void setTokenEndIndex(int index) {
+        this.tokenEndIndex = index;
     }
 
     @Override

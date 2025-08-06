@@ -66,6 +66,20 @@ public class Tokenizer {
                 }
                 String spaceStr = input.substring(start, pos);
                 tokens.add(new Token(TokenType.WHITESPACE, spaceStr));
+
+
+            // Обработка комментариев <!-- ... -->
+            } else if (ch == '<' && peekNext() == '!' && peek(2) == '-' && peek(3) == '-') {
+                int start = pos;
+                pos += 4; // Пропускаем <!--
+                while (pos + 2 < length &&
+                        !(input.charAt(pos) == '-' && input.charAt(pos + 1) == '-' && input.charAt(pos + 2) == '>')) {
+                    pos++;
+                }
+                pos += 3; // Пропускаем -->
+                String comment = input.substring(start, pos);
+                tokens.add(new Token(TokenType.COMMENT, comment));
+
             } else {
                 // Читаем текст или имя (вне тегов)
                 int start = pos;
@@ -78,6 +92,11 @@ public class Tokenizer {
         }
 
         return tokens;
+    }
+
+    private char peek(int offset) {
+        if (pos + offset >= length) return '\0';
+        return input.charAt(pos + offset);
     }
 
     private char peekNext() {
