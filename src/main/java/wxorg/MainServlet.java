@@ -4,8 +4,6 @@ package wxorg;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import wxorg.util.EntrySorter;
-import wxorg.util.QueryParser;
 import wxorg.view.AddView;
 import wxorg.view.EditView;
 import wxorg.view.ListView;
@@ -24,7 +22,7 @@ public class MainServlet extends HttpServlet {
 
     String dir;
 
-    ParserFile parserEntry;
+    ParserFile parserFile;
 
     ListView listView;
 
@@ -40,8 +38,8 @@ public class MainServlet extends HttpServlet {
         dir = properties.getProperty("dir").split(";")[0];
         dir = expandPath(dir);
         entryTypes = Arrays.asList("Note", "Bookmark", "Task", "Reminder"); // ← можно добавлять свои
-        parserEntry = new ParserFile(entryTypes);
-        recursiveParser = new RecursiveParser(dir, parserEntry);
+        parserFile = new ParserFile(entryTypes);
+        recursiveParser = new RecursiveParser(dir, parserFile);
         dataSourceService = new DataSourceService(recursiveParser, dir);
         listView = new ListView(dataSourceService);
         addView = new AddView();

@@ -1,0 +1,62 @@
+---
+Type:  Book
+Name:  NAME-X
+Id:    111CCGPC
+Cdate: 2000-06-25 15:11
+Tags:  Www
+Text:
+       Vim stores
+---
+Type:     Bookmark
+Name:     Программирование на языке Lua 3
+Id:       BJPCCGPC
+Url:      https://eligovision.ru/media/upload/lua.pdf
+Tags:     Lua Read Vim Todo
+File:     lua.pdf
+Text:
+    Vim stores the most recently entered command in the : register and the most recently
+    searched expression in the / register.
+    Since you already know how to paste into the command window you
+    can simply type <Ctrl-R>/ to paste in whatever you last searched for.
+-------------------------------------------------------------------------------
+
+Type:     Bookmark
+Name:     Программирование на языке Lua 3
+Id:       BJPCCGPCXX
+Url:      https://eligovision.ru/media/upload/lua.pdf
+Tags:     Lua Read Vim Todo
+File:     lua.pdf
+Text:
+    Vim stores the most recently entered command in the : register and the most recently
+    searched expression in the / register.
+    Since you already know how to paste into the command window you
+    can simply type <Ctrl-R>/ to paste in whatever you last searched for.
+-------------------------------------------------------------------------------
+Bookmark: Программирование на языке Lua 2 1JPCCG1C 2025-06-25 15:11
+Url:      https://eligovision.ru/media/upload/lua.pdf
+Tags:     Lua Read Vim Todo
+File:     lua.pdf
+Text:
+    Vim stores the most recently entered command in the : register and the most recently
+    searched expression in the / register.
+    Since you already know how to paste into the command window you
+    can simply type <Ctrl-R>/ to paste in whatever you last searched for.
+
+-------------------------------------------------------------------------------
+Type: Bookmark
+Name: Программирование на языке Lua 2
+Id:   3JPCX1P2
+Url:  https://eligovision.ru/
+Tags: Lua Read Vim
+Text:
+      Vim stores the most recently entered command in the : register and the most recently
+      can simply type <Ctrl-R>/ to paste in whatever you last searched for.
+
+Refs:
+      1JPCCG1C Программирование на языке Lua 2
+      BJPCCGPC Программирование на языке Lua 3
+
+BackRefs:
+      1JP4CG1C Программирование на языке Lua 5
+      BJP4CG44 Программирование на языке Lua 6
+
